@@ -522,7 +522,7 @@ body.tv-mode .tv-btn{
     </div>
 
     <div class="panel">
-      <div class="title">Operations / Dispatch Team</div>
+      <div class="title">Operations Team</div>
 
       <div class="ops-grid">
         <div class="ops-field">
@@ -536,18 +536,8 @@ body.tv-mode .tv-btn{
         </div>
 
         <div class="ops-field">
-          <div class="label">Dispatcher</div>
-          <div id="dispatcher" class="ops-name"></div>
-        </div>
-
-        <div class="ops-field">
           <div class="label">On Call Officer</div>
           <div id="onCallOfficer" class="ops-name"></div>
-        </div>
-
-        <div class="ops-field">
-          <div class="label">Coms Supervisor</div>
-          <div id="comsSupervisor" class="ops-name"></div>
         </div>
 
         <div class="ops-field full-width">
@@ -567,11 +557,11 @@ body.tv-mode .tv-btn{
         <tr>
           <th>Vehicle</th>
           <th>Shift ID</th>
+          <th>CTY ID</th>
           <th>Time</th>
           <th>Crew 1</th>
           <th>Crew 2</th>
           <th>Crew 3</th>
-          <th>Level of Care</th>
           <th>Comments</th>
         </tr>
       </thead>
@@ -593,11 +583,6 @@ body.tv-mode .tv-btn{
     <div id="daily-info" class="daily-info-content">
       No announcements at this time.
     </div>
-  </section>
-
-  <section class="panel">
-    <div class="title">Out Of Service Units</div>
-    <div id="oos-container"></div>
   </section>
 
 </div>
@@ -785,8 +770,6 @@ async function loadBoard(){
   setOpsField("crewChief", data.operations?.crewChief);
   setOpsField("assistantChief", data.operations?.assistantChief);
   setOpsField("dispatcher", data.operations?.dispatcher);
-  setOpsField("onCallOfficer", data.operations?.onCallOfficer);
-  setOpsField("comsSupervisor", data.operations?.comsSupervisor);
   setMedDirectionField("medicalDirection", data.operations?.medicalDirection);
 
   const body = document.getElementById("assignment-body");
@@ -799,11 +782,11 @@ async function loadBoard(){
     <tr>
       <td>${v.vehicle || ""}</td>
       <td>${v.shiftId || ""}</td>
+      <td>${v.ctyId || ""}</td>
       <td>${v.time || ""}</td>
       <td>${v.crew1 || ""}</td>
       <td>${v.crew2 || ""}</td>
       <td>${v.crew3 || ""}</td>
-      <td>${v.levelOfCare || ""}</td>
       <td>${v.comments || ""}</td>
     </tr>
   `).join("");
@@ -839,19 +822,6 @@ async function loadBoard(){
       : "No announcements at this time.";
   }
 
-  const oos = (data.oos || []);
-  const container = document.getElementById("oos-container");
-
-  if(oos.length === 0){
-    container.innerHTML = "<div style='color:white'>No units out of service</div>";
-  } else {
-    container.innerHTML = oos.map(o => `
-      <div class="oos-card">
-        <b>${o.vehicle}</b><br>
-        ${o.reason}
-      </div>
-    `).join("");
-  }
 
   document.getElementById("json-refresh").textContent =
     new Date().toLocaleTimeString("en-US", {
@@ -867,7 +837,7 @@ loadBoard();
 async function updateWeather(){
   try{
     const r = await fetch(
-      "https://api.open-meteo.com/v1/forecast?latitude=42.961&longitude=-77.140&current_weather=true&temperature_unit=fahrenheit&windspeed_unit=mph"
+      "https://api.open-meteo.com/v1/forecast?latitude=42.9981&longitude=-78.1875&current_weather=true&temperature_unit=fahrenheit&windspeed_unit=mph"
     );
 
     const d = await r.json();
@@ -905,7 +875,7 @@ async function updateWeather(){
     const banner = document.getElementById("weather-alert-banner");
 
     const alertsReq = await fetch(
-      "https://api.weather.gov/alerts/active?point=42.961,-77.140",
+      "https://api.weather.gov/alerts/active?point=42.9981,-78.1875",
       { headers: { "Accept": "application/geo+json" } }
     );
 
