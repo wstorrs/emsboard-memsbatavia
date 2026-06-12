@@ -158,25 +158,30 @@ export async function onRequest(context) {
         ? JSON.parse(currentStoredRaw)
         : fallback;
 
-      const currentStoredRevision =
-        currentStoredData.revisionId || "initial-revision-v1";
+ const currentStoredRevision =
+  currentStoredData.revisionId || "initial-revision-v1";
 
-      const incomingClientRevision = body.revisionId;
+const incomingClientRevision = body.revisionId;
 
-      if (incomingClientRevision !== currentStoredRevision) {
-        return new Response(
-          JSON.stringify({
-            success: false,
-            error: "Conflict detected",
-            details:
-              "Another user has saved updates since you loaded this board layout."
-          }),
-          {
-            status: 409,
-            headers: { "Content-Type": "application/json" }
-          }
-        );
-      }
+// Only block the save if BOTH revisions exist and they don't match
+if (
+  incomingClientRevision &&
+  currentStoredRevision &&
+  incomingClientRevision !== currentStoredRevision
+) {
+  return new Response(
+    JSON.stringify({
+      success: false,
+      error: "Conflict detected",
+      details:
+        "Another user has saved updates since you loaded this board layout."
+    }),
+    {
+      status: 409,
+      headers: { "Content-Type": "application/json" }
+    }
+  );
+}
 
       const normalized = normalizeBoardData(body);
       const freshlyGeneratedRevision = "rev-" + Date.now().toString(36);
