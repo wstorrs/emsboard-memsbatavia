@@ -91,22 +91,13 @@
     </p>
 
     <section class="admin-section">
-      <h2>Operations / Dispatch Team</h2>
+      <h2>Operations Team</h2>
       <div class="form-grid">
         <label>Crew Chief
           <input id="crewChief" type="text" />
         </label>
         <label>Operations Manager
           <input id="assistantChief" type="text" />
-        </label>
-        <label>Dispatcher(s)
-          <input id="dispatcher" type="text" />
-        </label>
-        <label>On-Call Officer
-          <input id="onCallOfficer" type="text" />
-        </label>
-        <label>Coms Supervisor
-          <input id="comsSupervisor" type="text" />
         </label>
         
         <label class="full-width-label">Medical Direction Phone # (Only update if directed to do so)
@@ -122,11 +113,11 @@
           <tr>
             <th>Vehicle</th>
             <th>Shift ID</th>
+            <th>CTY ID</th>
             <th>Time</th>
             <th>Crew 1</th>
             <th>Crew 2</th>
             <th>Crew 3</th>
-            <th>Level of Care</th>
             <th>Comments</th>
             <th>Delete</th>
           </tr>
@@ -163,23 +154,6 @@
       </p>
     </section>
 
-    <section class="admin-section">
-      <h2>Out of Service Units</h2>
-      <table id="oosTable">
-        <thead>
-          <tr>
-            <th>Vehicle</th>
-            <th>Reason</th>
-            <th>Delete</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-      <p>
-        <button type="button" id="addOosRowBtn">Add OOS Row</button>
-      </p>
-    </section>
-
     <section class="admin-section admin-save-bar">
       <button id="saveBtn" type="button">Save Changes</button>
       <p id="statusMsg">Loading current board data...</p>
@@ -202,11 +176,11 @@
         <tr>
           <td>${escapeHtml(row.querySelector(".vehicle").value)}</td>
           <td>${escapeHtml(row.querySelector(".shiftId").value)}</td>
+          <td>${escapeHtml(row.querySelector(".ctyId").value)}</td>
           <td>${escapeHtml(row.querySelector(".time").value)}</td>
           <td>${escapeHtml(row.querySelector(".crew1").value)}</td>
           <td>${escapeHtml(row.querySelector(".crew2").value)}</td>
           <td>${escapeHtml(row.querySelector(".crew3").value)}</td>
-          <td>${escapeHtml(row.querySelector(".levelOfCare").value)}</td>
           <td>${escapeHtml(row.querySelector(".comments").value)}</td>
         </tr>
       `).join("");
@@ -366,28 +340,6 @@
       return dailyInfoInput.value.trim();
     }
 
-    function updateLevelOfCareClass(selectEl) {
-      selectEl.classList.remove(
-        "level-care-bls",
-        "level-care-als",
-        "level-care-sct",
-        "level-care-rsi"
-      );
-
-      switch (selectEl.value) {
-        case "BLS":
-          selectEl.classList.add("level-care-bls");
-          break;
-        case "ALS":
-          selectEl.classList.add("level-care-als");
-          break;
-        case "SCT":
-          selectEl.classList.add("level-care-sct");
-          break;
-        case "ALS/RSI":
-          selectEl.classList.add("level-care-rsi");
-          break;
-      }
     }
 
     function createVehicleRow(vehicle = {}) {
@@ -399,25 +351,12 @@
         <td><input type="text" class="crew1" value="${escapeHtml(vehicle.crew1 || "")}"></td>
         <td><input type="text" class="crew2" value="${escapeHtml(vehicle.crew2 || "")}"></td>
         <td><input type="text" class="crew3" value="${escapeHtml(vehicle.crew3 || "")}"></td>
-        <td>
-          <select class="levelOfCare">
-            <option value="" ${!vehicle.levelOfCare ? "selected" : ""}>Select</option>
-            <option value="BLS" ${vehicle.levelOfCare === "BLS" ? "selected" : ""}>BLS</option>
-            <option value="ALS" ${vehicle.levelOfCare === "ALS" ? "selected" : ""}>ALS</option>
-            <option value="SCT" ${vehicle.levelOfCare === "SCT" ? "selected" : ""}>SCT</option>
-            <option value="ALS/RSI" ${vehicle.levelOfCare === "ALS/RSI" ? "selected" : ""}>ALS/RSI</option>
-          </select>
-        </td>
         <td><input type="text" class="comments" value="${escapeHtml(vehicle.comments || "")}"></td>
         <td><button type="button" class="deleteRowBtn">Delete</button></td>
       `;
 
       const deleteBtn = row.querySelector(".deleteRowBtn");
       deleteBtn.addEventListener("click", () => row.remove());
-
-      const locSelect = row.querySelector(".levelOfCare");
-      locSelect.addEventListener("change", () => updateLevelOfCareClass(locSelect));
-      updateLevelOfCareClass(locSelect);
 
       return row;
     }
@@ -456,9 +395,7 @@
     function loadForm(data) {
       document.getElementById("crewChief").value = data.operations?.crewChief || "";
       document.getElementById("assistantChief").value = data.operations?.assistantChief || "";
-      document.getElementById("dispatcher").value = data.operations?.dispatcher || "";
       document.getElementById("onCallOfficer").value = data.operations?.onCallOfficer || "";
-      document.getElementById("comsSupervisor").value = data.operations?.comsSupervisor || "";
       document.getElementById("medicalDirection").value = data.operations?.medicalDirection || "716-626-4011";
 
       const vehicleBody = document.querySelector("#vehicleTable tbody");
@@ -477,41 +414,33 @@
       if (dailyInfoInput) {
         dailyInfoInput.value = data.dailyInfo || "";
       }
-
-      const oosBody = document.querySelector("#oosTable tbody");
-      oosBody.innerHTML = "";
-      (data.oos || []).forEach(item => {
-        oosBody.appendChild(createOosRow(item));
-      });
     }
 
     function collectFormData() {
       const operations = {
         crewChief: document.getElementById("crewChief").value.trim(),
         assistantChief: document.getElementById("assistantChief").value.trim(),
-        dispatcher: document.getElementById("dispatcher").value.trim(),
         onCallOfficer: document.getElementById("onCallOfficer").value.trim(),
-        comsSupervisor: document.getElementById("comsSupervisor").value.trim(),
         medicalDirection: document.getElementById("medicalDirection").value.trim()
       };
 
       const vehicles = Array.from(document.querySelectorAll("#vehicleTable tbody tr")).map(row => ({
         vehicle: row.querySelector(".vehicle").value.trim(),
         shiftId: row.querySelector(".shiftId").value.trim(),
+        ctyId: row.querySelector(".levelOfCare").value.trim(),
         time: row.querySelector(".time").value.trim(),
         crew1: row.querySelector(".crew1").value.trim(),
         crew2: row.querySelector(".crew2").value.trim(),
         crew3: row.querySelector(".crew3").value.trim(),
-        levelOfCare: row.querySelector(".levelOfCare").value.trim(),
         comments: row.querySelector(".comments").value.trim()
       })).filter(v =>
         v.vehicle !== "" ||
         v.shiftId !== "" ||
+        v.ctyId !== "" ||
         v.time !== "" ||
         v.crew1 !== "" ||
         v.crew2 !== "" ||
         v.crew3 !== "" ||
-        v.levelOfCare !== "" ||
         v.comments !== ""
       );
 
@@ -521,14 +450,9 @@
         comment: row.querySelector(".comment").value.trim()
       }));
 
-      const oos = Array.from(document.querySelectorAll("#oosTable tbody tr")).map(row => ({
-        vehicle: row.querySelector(".oos-vehicle").value.trim(),
-        reason: row.querySelector(".oos-reason").value.trim()
-      })).filter(item => item.vehicle !== "" || item.reason !== "");
-
       const dailyInfo = getDailyInfoHtml();
 
-      return { operations, vehicles, hospitals, oos, dailyInfo };
+      return { operations, vehicles, hospitals, dailyInfo };
     }
 
     // Dynamic UI Warning Banner controls
@@ -553,10 +477,6 @@
 
     document.getElementById("addVehicleRowBtn").addEventListener("click", () => {
       document.querySelector("#vehicleTable tbody").appendChild(createVehicleRow({}));
-    });
-
-    document.getElementById("addOosRowBtn").addEventListener("click", () => {
-      document.querySelector("#oosTable tbody").appendChild(createOosRow({}));
     });
 
     // Save Changes Handler containing safety version stamps
