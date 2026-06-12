@@ -138,12 +138,17 @@
             <th>Facility</th>
             <th>Status</th>
             <th>Comment</th>
+            <th>Delete</th>
           </tr>
         </thead>
         <tbody></tbody>
       </table>
     </section>
 
+    <p>
+  <button type="button" id="addHospitalRowBtn">Add Hospital Row</button>
+</p>
+    
     <section class="admin-section">
       <h2>Daily Information / Announcements</h2>
       <div class="daily-info-admin-box">
@@ -361,35 +366,30 @@
     }
 
     function createHospitalRow(hospital = {}) {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>
-          <input type="text" class="facility" value="${escapeHtml(hospital.facility || "")}" readonly>
-        </td>
-        <td>
-          <select class="status">
-            <option value="OPEN" ${hospital.status === "OPEN" ? "selected" : ""}>OPEN</option>
-            <option value="RED" ${hospital.status === "RED" ? "selected" : ""}>RED</option>
-            <option value="ORANGE" ${hospital.status === "ORANGE" ? "selected" : ""}>ORANGE</option>
-          </select>
-        </td>
-        <td>
-          <input type="text" class="comment" value="${escapeHtml(hospital.comment || "")}" placeholder="Enter comment">
-        </td>
-      `;
-      return row;
-    }
+  const row = document.createElement("tr");
+  row.innerHTML = `
+    <td>
+      <input type="text" class="facility" value="${escapeHtml(hospital.facility || "")}" placeholder="Hospital name">
+    </td>
+    <td>
+      <select class="status">
+        <option value="OPEN" ${hospital.status === "OPEN" ? "selected" : ""}>OPEN</option>
+        <option value="RED" ${hospital.status === "RED" ? "selected" : ""}>RED</option>
+        <option value="ORANGE" ${hospital.status === "ORANGE" ? "selected" : ""}>ORANGE</option>
+      </select>
+    </td>
+    <td>
+      <input type="text" class="comment" value="${escapeHtml(hospital.comment || "")}" placeholder="Enter comment">
+    </td>
+    <td>
+      <button type="button" class="deleteHospitalRowBtn">Delete</button>
+    </td>
+  `;
 
-    function createOosRow(oos = {}) {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td><input type="text" class="oos-vehicle" value="${escapeHtml(oos.vehicle || "")}"></td>
-        <td><input type="text" class="oos-reason" value="${escapeHtml(oos.reason || "")}"></td>
-        <td><button type="button" class="deleteOosRowBtn">Delete</button></td>
-      `;
-      row.querySelector(".deleteOosRowBtn").addEventListener("click", () => row.remove());
-      return row;
-    }
+  row.querySelector(".deleteHospitalRowBtn").addEventListener("click", () => row.remove());
+
+  return row;
+}
 
     function loadForm(data) {
       document.getElementById("crewChief").value = data.operations?.crewChief || "";
@@ -401,6 +401,10 @@
       (data.vehicles || []).forEach(vehicle => {
         vehicleBody.appendChild(createVehicleRow(vehicle));
       });
+
+      document.getElementById("addHospitalRowBtn").addEventListener("click", () => {
+  document.querySelector("#hospitalTable tbody").appendChild(createHospitalRow({}));
+});
 
       const hospitalBody = document.querySelector("#hospitalTable tbody");
       hospitalBody.innerHTML = "";
