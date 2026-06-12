@@ -535,11 +535,6 @@ body.tv-mode .tv-btn{
           <div id="assistantChief" class="ops-name"></div>
         </div>
 
-        <div class="ops-field">
-          <div class="label">On Call Officer</div>
-          <div id="onCallOfficer" class="ops-name"></div>
-        </div>
-
         <div class="ops-field full-width">
           <div class="label"> MEMS Medical Direction</div>
           <div id="medicalDirection" class="ops-name">716-626-4011</div>
@@ -769,7 +764,6 @@ async function loadBoard(){
 
   setOpsField("crewChief", data.operations?.crewChief);
   setOpsField("assistantChief", data.operations?.assistantChief);
-  setOpsField("dispatcher", data.operations?.dispatcher);
   setMedDirectionField("medicalDirection", data.operations?.medicalDirection);
 
   const body = document.getElementById("assignment-body");
