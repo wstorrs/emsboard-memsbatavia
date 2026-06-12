@@ -290,18 +290,18 @@
           </style>
         </head>
         <body>
-          <h2>Mercy Flight EMS: Finger Lakes Base - Vehicle Assignments</h2>
+          <h2>Mercy Flight EMS: Batavia Base - Vehicle Assignments</h2>
           <div class="med-dir-pdf-line">Medical Direction: ${escapeHtml(medDirValue)}</div>
           <table>
             <thead>
               <tr>
                 <th>Vehicle</th>
                 <th>Shift ID</th>
+                <th>CTY ID</th>
                 <th>Time</th>
                 <th>Crew 1</th>
                 <th>Crew 2</th>
                 <th>Crew 3</th>
-                <th>Level of Care</th>
                 <th>Comments</th>
               </tr>
             </thead>
@@ -340,13 +340,12 @@
       return dailyInfoInput.value.trim();
     }
 
-    }
-
     function createVehicleRow(vehicle = {}) {
       const row = document.createElement("tr");
       row.innerHTML = `
         <td><input type="text" class="vehicle" value="${escapeHtml(vehicle.vehicle || "")}"></td>
         <td><input type="text" class="shiftId" value="${escapeHtml(vehicle.shiftId || "")}"></td>
+        <td><input type="text" class="ctyId" value="${escapeHtml(vehicle.ctyId || "")}"></td>
         <td><input type="text" class="time" value="${escapeHtml(vehicle.time || "")}"></td>
         <td><input type="text" class="crew1" value="${escapeHtml(vehicle.crew1 || "")}"></td>
         <td><input type="text" class="crew2" value="${escapeHtml(vehicle.crew2 || "")}"></td>
@@ -395,7 +394,6 @@
     function loadForm(data) {
       document.getElementById("crewChief").value = data.operations?.crewChief || "";
       document.getElementById("assistantChief").value = data.operations?.assistantChief || "";
-      document.getElementById("onCallOfficer").value = data.operations?.onCallOfficer || "";
       document.getElementById("medicalDirection").value = data.operations?.medicalDirection || "716-626-4011";
 
       const vehicleBody = document.querySelector("#vehicleTable tbody");
@@ -420,14 +418,13 @@
       const operations = {
         crewChief: document.getElementById("crewChief").value.trim(),
         assistantChief: document.getElementById("assistantChief").value.trim(),
-        onCallOfficer: document.getElementById("onCallOfficer").value.trim(),
         medicalDirection: document.getElementById("medicalDirection").value.trim()
       };
 
       const vehicles = Array.from(document.querySelectorAll("#vehicleTable tbody tr")).map(row => ({
         vehicle: row.querySelector(".vehicle").value.trim(),
         shiftId: row.querySelector(".shiftId").value.trim(),
-        ctyId: row.querySelector(".levelOfCare").value.trim(),
+        ctyId: row.querySelector(".ctyId").value.trim(),
         time: row.querySelector(".time").value.trim(),
         crew1: row.querySelector(".crew1").value.trim(),
         crew2: row.querySelector(".crew2").value.trim(),
