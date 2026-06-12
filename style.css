@@ -1,0 +1,297 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #0f2347;
+  color: #ff671f;
+}
+
+.admin-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+h1, h2 {
+  color: #ff671f;
+}
+
+.admin-section {
+  background: rgba(0,0,0,0.18);
+  border: 2px solid rgba(255,255,255,0.12);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: white;
+  font-weight: bold;
+}
+
+input,
+select,
+button,
+textarea {
+  width: 100%;
+  max-width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.15);
+  font-size: 14px;
+}
+
+input,
+select,
+textarea {
+  background: white;
+  color: black;
+}
+
+button {
+  width: auto;
+  background: #ff671f;
+  color: white;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th,
+td {
+  padding: 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  color: #ff671f;
+}
+
+td {
+  color: white;
+}
+
+td input,
+td select,
+td textarea {
+  width: 100%;
+  min-width: 0;
+  display: block;
+}
+
+/* Vehicle table: stable widths for dispatch screens */
+#vehicleTable {
+  width: 100%;
+  table-layout: fixed;
+}
+
+#vehicleTable th:nth-child(1),
+#vehicleTable td:nth-child(1) { width: 9%; } /* Vehicle */
+
+#vehicleTable th:nth-child(2),
+#vehicleTable td:nth-child(2) { width: 9%; } /* Shift ID */
+
+#vehicleTable th:nth-child(3),
+#vehicleTable td:nth-child(3) { width: 9%; } /* Time */
+
+#vehicleTable th:nth-child(4),
+#vehicleTable td:nth-child(4) { width: 13%; } /* Crew 1 */
+
+#vehicleTable th:nth-child(5),
+#vehicleTable td:nth-child(5) { width: 13%; } /* Crew 2 */
+
+#vehicleTable th:nth-child(6),
+#vehicleTable td:nth-child(6) { width: 13%; } /* Crew 3 */
+
+#vehicleTable th:nth-child(7),
+#vehicleTable td:nth-child(7) { width: 15%; } /* Level of Care */
+
+#vehicleTable th:nth-child(8),
+#vehicleTable td:nth-child(8) { width: 11%; } /* Comments */
+
+#vehicleTable th:nth-child(9),
+#vehicleTable td:nth-child(9) {
+  width: 8%;   /* Delete */
+  min-width: 90px;
+}
+
+/* Keep delete button visible */
+#vehicleTable td:last-child button {
+  white-space: nowrap;
+  min-width: 72px;
+}
+
+/* Color-coded Level of Care */
+.levelOfCare {
+  font-weight: bold;
+  border: 2px solid transparent;
+}
+
+.level-care-bls {
+  background: #2e7d32 !important;
+  color: #fff !important;
+}
+
+.level-care-als {
+  background: #1565c0 !important;
+  color: #fff !important;
+}
+
+.level-care-sct {
+  background: #6a1b9a !important;
+  color: #fff !important;
+}
+
+.level-care-rsi {
+  background: #c62828 !important;
+  color: #fff !important;
+}
+
+#hospitalTable th:nth-child(1) { width: 20%; }
+#hospitalTable th:nth-child(2) { width: 20%; }
+#hospitalTable th:nth-child(3) { width: 60%; }
+
+#oosTable th:nth-child(1) { width: 35%; }
+#oosTable th:nth-child(2) { width: 45%; }
+#oosTable th:nth-child(3) { width: 20%; }
+
+#statusMsg {
+  color: white;
+  margin-top: 10px;
+}
+
+.admin-save-bar {
+  position: sticky;
+  bottom: 12px;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(4px);
+  z-index: 5;
+}
+
+/* Tablet */
+@media (max-width: 1100px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-page {
+    padding: 14px;
+  }
+
+  .admin-section {
+    padding: 12px;
+  }
+
+  #vehicleTable {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  #hospitalTable,
+  #oosTable {
+    display: block;
+    overflow-x: auto;
+  }
+}
+
+/* Mobile stacked layout */
+@media (max-width: 700px) {
+  .admin-page {
+    padding: 10px;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+
+  table,
+  thead,
+  tbody,
+  th,
+  td,
+  tr {
+    display: block;
+    width: 100%;
+  }
+
+  #vehicleTable thead,
+  #hospitalTable thead,
+  #oosTable thead {
+    display: none;
+  }
+
+  #vehicleTable tbody tr,
+  #hospitalTable tbody tr,
+  #oosTable tbody tr {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    padding: 10px;
+    margin-bottom: 12px;
+  }
+
+  #vehicleTable td,
+  #hospitalTable td,
+  #oosTable td {
+    display: flex;
+    flex-direction: column;
+    padding: 6px 0;
+    border: none;
+  }
+
+  #vehicleTable td::before,
+  #hospitalTable td::before,
+  #oosTable td::before {
+    font-weight: bold;
+    color: #ff671f;
+    margin-bottom: 4px;
+  }
+
+  #vehicleTable td:nth-child(1)::before { content: "Vehicle"; }
+  #vehicleTable td:nth-child(2)::before { content: "Shift ID"; }
+  #vehicleTable td:nth-child(3)::before { content: "Time"; }
+  #vehicleTable td:nth-child(4)::before { content: "Crew 1"; }
+  #vehicleTable td:nth-child(5)::before { content: "Crew 2"; }
+  #vehicleTable td:nth-child(6)::before { content: "Crew 3"; }
+  #vehicleTable td:nth-child(7)::before { content: "Level of Care"; }
+  #vehicleTable td:nth-child(8)::before { content: "Comments"; }
+  #vehicleTable td:nth-child(9)::before { content: "Delete"; }
+
+  #hospitalTable td:nth-child(1)::before { content: "Facility"; }
+  #hospitalTable td:nth-child(2)::before { content: "Status"; }
+  #hospitalTable td:nth-child(3)::before { content: "Comment"; }
+
+  #oosTable td:nth-child(1)::before { content: "Vehicle"; }
+  #oosTable td:nth-child(2)::before { content: "Reason"; }
+  #oosTable td:nth-child(3)::before { content: "Delete"; }
+
+  input,
+  select,
+  button,
+  textarea {
+    font-size: 16px;
+  }
+
+  .admin-save-bar {
+    bottom: 8px;
+  }
+}

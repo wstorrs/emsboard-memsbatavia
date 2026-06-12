@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MEMS - Genesee County Region</title>
+
+<style>
+:root{
+  --pantone662:#0f2347;
+  --pantone165:#ff671f;
+
+  /* default fluid type scale */
+  --fs-label: clamp(0.7rem, 0.55rem + 0.35vw, 0.95rem);
+  --fs-body: clamp(0.85rem, 0.7rem + 0.4vw, 1.1rem);
+  --fs-title: clamp(1rem, 0.8rem + 0.8vw, 1.5rem);
+  --fs-clock: clamp(2rem, 1rem + 4vw, 4.5rem);
+  --fs-date: clamp(0.95rem, 0.8rem + 0.45vw, 1.2rem);
+  --fs-hospital: clamp(1rem, 0.8rem + 0.9vw, 1.5rem);
+  --fs-banner: clamp(1rem, 0.8rem + 1vw, 1.6rem);
+
+  --fs-th: clamp(0.75rem, 0.65rem + 0.35vw, 1rem);
+  --fs-td: clamp(0.9rem, 0.8rem + 0.4vw, 1.2rem);
+  --fs-td-priority: clamp(1.1rem, 0.95rem + 0.8vw, 1.6rem);
+  --fs-td-comments: clamp(0.9rem, 0.8rem + 0.4vw, 1.1rem);
+}
+
+/* TV mode overrides */
+body.tv-mode{
+  --fs-label: clamp(0.9rem, 0.75rem + 0.45vw, 1.2rem);
+  --fs-body: clamp(1rem, 0.85rem + 0.5vw, 1.3rem);
+  --fs-title: clamp(1.3rem, 1rem + 1vw, 2rem);
+  --fs-clock: clamp(3.2rem, 2rem + 5vw, 6rem);
+  --fs-date: clamp(1.1rem, 0.95rem + 0.55vw, 1.45rem);
+  --fs-hospital: clamp(1.2rem, 1rem + 1vw, 1.9rem);
+  --fs-banner: clamp(1.2rem, 1rem + 1.1vw, 2rem);
+
+  --fs-th: clamp(0.95rem, 0.8rem + 0.45vw, 1.25rem);
+  --fs-td: clamp(1.1rem, 0.95rem + 0.55vw, 1.5rem);
+  --fs-td-priority: clamp(1.35rem, 1.1rem + 1vw, 2rem);
+  --fs-td-comments: clamp(1rem, 0.9rem + 0.45vw, 1.3rem);
+}
+
+html, body{
+  margin:0;
+  padding:0;
+}
+
+body{
+  font-family:Arial,Helvetica,sans-serif;
+  background:var(--pantone662);
+  color:var(--pantone165);
+  font-size:var(--fs-body);
+}
+
+.board{
+  padding:12px;
+  display:grid;
+  gap:12px;
+}
+
+body.tv-mode .board{
+  padding:18px;
+  gap:16px;
+}
+
+.panel{
+  background:rgba(0,0,0,0.2);
+  border-radius:12px;
+  padding:12px;
+  border:1px solid rgba(255,255,255,.15);
+  min-width:0;
+}
+
+body.tv-mode .panel{
+  padding:16px;
+  border-radius:16px;
+}
+
+.title{
+  font-weight:bold;
+  text-transform:uppercase;
+  margin-bottom:6px;
+  letter-spacing:1px;
+  font-size:var(--fs-title);
+}
+
+.top-row{
+  display:grid;
+  grid-template-columns:1fr 1.3fr 1fr;
+  gap:12px;
+  align-items:stretch;
+}
+
+body.tv-mode .top-row{
+  gap:16px;
+}
+
+.weather-item{
+  background:rgba(255,255,255,.05);
+  border-radius:8px;
+  padding:8px;
+  margin-bottom:6px;
+}
+
+body.tv-mode .weather-item{
+  padding:12px;
+  border-radius:10px;
+}
+
+.label{
+  font-size:var(--fs-label);
+  color:#ccc;
+}
+
+.value{
+  color:white;
+  font-weight:bold;
+  font-size:clamp(1rem, 0.8rem + 0.8vw, 1.4rem);
+  overflow-wrap:anywhere;
+}
+
+body.tv-mode .value{
+  font-size:clamp(1.25rem, 1rem + 1vw, 1.8rem);
+}
+
+.refresh-time{
+  font-size:var(--fs-label);
+  margin-left:6px;
+  color:white;
+}
+
+.clock-panel{
+  text-align:center;
+}
+
+.header-logo{
+  display:block;
+  max-width:220px;
+  width:45%;
+  height:auto;
+  margin:4px auto 10px auto;
+  object-fit:contain;
+}
+
+body.tv-mode .header-logo{
+  max-width:300px;
+  width:50%;
+  margin-bottom:14px;
+}
+  
+.clock{
+  font-size:var(--fs-clock);
+  font-weight:900;
+  color:white;
+  font-variant-numeric:tabular-nums;
+  line-height:1;
+}
+
+.date-display{
+  color:white;
+  font-size:var(--fs-date);
+  font-weight:600;
+  margin-top:6px;
+}
+
+.ops-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:6px;
+}
+
+body.tv-mode .ops-grid{
+  gap:10px;
+}
+
+.ops-field{
+  background:rgba(255,255,255,.06);
+  padding:6px;
+  border-radius:6px;
+  min-width:0;
+}
+
+.ops-field.full-width {
+  grid-column: span 2;
+}
+
+body.tv-mode .ops-field{
+  padding:10px;
+  border-radius:10px;
+}
+
+.ops-name{
+  color:white;
+  font-weight:bold;
+  font-size:clamp(0.95rem, 0.8rem + 0.6vw, 1.25rem);
+  overflow-wrap:anywhere;
+}
+
+body.tv-mode .ops-name{
+  font-size:clamp(1.15rem, 0.95rem + 0.8vw, 1.6rem);
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  table-layout:fixed;
+}
+
+th{
+  text-align:left;
+  padding:6px;
+  background:rgba(255,255,255,.08);
+  font-size:var(--fs-th);
+}
+
+td{
+  padding:8px;
+  border-bottom:1px solid rgba(255,255,255,.1);
+  color:white;
+  font-size:var(--fs-td);
+  overflow-wrap:anywhere;
+  vertical-align:top;
+}
+
+/* Comments column smaller */
+td:nth-child(8){
+  font-size:var(--fs-td-comments);
+}
+
+body.tv-mode th,
+body.tv-mode td{
+  padding:12px;
+}
+
+.hospital-columns{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+body.tv-mode .hospital-columns{
+  gap:14px;
+}
+
+.hospital-card{
+  padding:8px;
+  border-radius:8px;
+  color:white;
+}
+
+body.tv-mode .hospital-card{
+  padding:12px;
+  border-radius:12px;
+}
+
+.red{
+  background:#c62828;
+  animation:pulse 2s infinite;
+}
+
+.orange{
+  background:#ef6c00;
+}
+
+.hospital-name{
+  font-size:var(--fs-hospital);
+  font-weight:bold;
+  line-height:1.2;
+}
+
+.hospital-comment{
+  margin-top:4px;
+  font-size:clamp(0.85rem, 0.75rem + 0.35vw, 1rem);
+}
+
+body.tv-mode .hospital-comment{
+  font-size:clamp(1rem, 0.9rem + 0.45vw, 1.25rem);
+}
+
+/* Daily Information panel */
+.info-panel{
+  min-height:120px;
+}
+
+.daily-info-content{
+  color:white;
+  background:rgba(255,255,255,.06);
+  border-radius:8px;
+  padding:12px;
+  font-size:var(--fs-body);
+  line-height:1.35;
+  min-height:70px;
+  overflow-wrap:anywhere;
+}
+
+body.tv-mode .daily-info-content{
+  padding:16px;
+  font-size:clamp(1.1rem, 0.95rem + 0.55vw, 1.5rem);
+}
+
+.daily-info-content p{
+  margin:0 0 8px 0;
+}
+
+.daily-info-content p:last-child{
+  margin-bottom:0;
+}
+
+.daily-info-content ul,
+.daily-info-content ol{
+  margin-top:6px;
+  margin-bottom:6px;
+  padding-left:28px;
+}
+
+.daily-info-content li{
+  margin-bottom:4px;
+}
+
+.daily-info-content strong,
+.daily-info-content b{
+  font-weight:800;
+}
+
+.daily-info-content em,
+.daily-info-content i{
+  font-style:italic;
+}
+
+.daily-info-content u{
+  text-decoration:underline;
+}
+
+.daily-info-content a{
+  color:var(--pantone165);
+  font-weight:bold;
+}
+
+.oos-card{
+  padding:6px;
+  background:rgba(255,255,255,.08);
+  border-radius:6px;
+  color:white;
+  margin-bottom:6px;
+  font-size:clamp(0.85rem, 0.75rem + 0.35vw, 1rem);
+}
+
+body.tv-mode .oos-card{
+  padding:10px;
+  border-radius:10px;
+  font-size:clamp(1rem, 0.9rem + 0.45vw, 1.25rem);
+}
+
+.weather-alert{
+  display:block;
+  margin-top:3px;
+  font-size:clamp(0.85rem, 0.75rem + 0.35vw, 1rem);
+}
+
+.weather-alert.warning{
+  color:#ffb3b3;
+  font-weight:800;
+}
+
+.weather-alert.watch{
+  color:#ffd27f;
+  font-weight:700;
+}
+
+.weather-alert.advisory{
+  color:#fff3b0;
+  font-weight:700;
+}
+
+.alert-banner{
+  width:100%;
+  text-align:center;
+  font-weight:bold;
+  padding:10px;
+  font-size:var(--fs-banner);
+  letter-spacing:1px;
+  box-sizing:border-box;
+}
+
+body.tv-mode .alert-banner{
+  padding:14px;
+}
+
+.alert-warning{
+  background:#b71c1c;
+  color:white;
+}
+
+.alert-watch{
+  background:#ef6c00;
+  color:white;
+}
+
+.alert-advisory{
+  background:#f9a825;
+  color:black;
+}
+
+/* TV button */
+.tv-controls{
+  position:fixed;
+  top:10px;
+  right:10px;
+  z-index:9999;
+  display:flex;
+  gap:8px;
+}
+
+.tv-btn{
+  border:none;
+  border-radius:10px;
+  padding:10px 14px;
+  font-weight:700;
+  cursor:pointer;
+  background:var(--pantone165);
+  color:#111;
+  box-shadow:0 2px 8px rgba(0,0,0,.25);
+}
+
+.tv-btn:hover{
+  filter:brightness(1.05);
+}
+
+body.tv-mode .tv-btn{
+  padding:12px 16px;
+  font-size:1rem;
+}
+
+/* hide button in fullscreen after a few seconds if wanted later */
+.fullscreen body .tv-controls{
+  opacity:.4;
+}
+
+@media (max-width:1000px){
+  .top-row,
+  .hospital-columns,
+  .ops-grid{
+    grid-template-columns:1fr;
+  }
+  .ops-field.full-width {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width:700px){
+  .board{
+    padding:8px;
+    gap:8px;
+  }
+
+  .panel{
+    padding:8px;
+  }
+
+  th, td{
+    padding:4px;
+  }
+
+  .tv-controls{
+    top:8px;
+    right:8px;
+    flex-direction:column;
+  }
+
+  .tv-btn{
+    padding:8px 10px;
+    font-size:0.9rem;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="tv-controls">
+  <button id="tv-mode-btn" class="tv-btn" type="button">TV Mode: Off</button>
+  <button id="fullscreen-btn" class="tv-btn" type="button">Fullscreen</button>
+</div>
+
+<div id="weather-alert-banner" class="alert-banner" style="display:none"></div>
+
+<div class="board">
+
+  <section class="top-row">
+
+    <div class="panel">
+      <div class="title">
+        Local Weather <span id="weather-refresh" class="refresh-time">--</span>
+      </div>
+
+      <div class="weather-item">
+        <div class="label">Condition</div>
+        <div class="value" id="weather-condition">Loading...</div>
+      </div>
+
+      <div class="weather-item">
+        <div class="label">Temp</div>
+        <div class="value" id="weather-temp">--</div>
+      </div>
+
+      <div class="weather-item">
+        <div class="label">Wind</div>
+        <div class="value" id="weather-wind">--</div>
+      </div>
+    </div>
+
+    <div class="panel clock-panel">
+      <div class="title">Batavia Base</div>
+      <img src="/logo.png" alt="Mercy Flight logo" class="header-logo">
+      <div id="clock" class="clock">00:00</div>
+      <div id="date-display" class="date-display"></div>
+
+      <div style="color:white;font-size:12px;margin-top:4px;">
+        Page Last Refresh: <span id="json-refresh">--</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="title">Operations / Dispatch Team</div>
+
+      <div class="ops-grid">
+        <div class="ops-field">
+          <div class="label">Crew Chief</div>
+          <div id="crewChief" class="ops-name"></div>
+        </div>
+
+        <div class="ops-field">
+          <div class="label">Assistant Chief</div>
+          <div id="assistantChief" class="ops-name"></div>
+        </div>
+
+        <div class="ops-field">
+          <div class="label">Dispatcher</div>
+          <div id="dispatcher" class="ops-name"></div>
+        </div>
+
+        <div class="ops-field">
+          <div class="label">On Call Officer</div>
+          <div id="onCallOfficer" class="ops-name"></div>
+        </div>
+
+        <div class="ops-field">
+          <div class="label">Coms Supervisor</div>
+          <div id="comsSupervisor" class="ops-name"></div>
+        </div>
+
+        <div class="ops-field full-width">
+          <div class="label"> MEMS Medical Direction</div>
+          <div id="medicalDirection" class="ops-name">716-626-4011</div>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+  <section class="panel">
+    <div class="title">Vehicle Assignments</div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Vehicle</th>
+          <th>Shift ID</th>
+          <th>Time</th>
+          <th>Crew 1</th>
+          <th>Crew 2</th>
+          <th>Crew 3</th>
+          <th>Level of Care</th>
+          <th>Comments</th>
+        </tr>
+      </thead>
+      <tbody id="assignment-body"></tbody>
+    </table>
+  </section>
+
+  <section class="panel">
+    <div class="title">Hospital Status</div>
+
+    <div class="hospital-columns">
+      <div id="hospital-column-1"></div>
+      <div id="hospital-column-2"></div>
+    </div>
+  </section>
+
+  <section class="panel info-panel">
+    <div class="title">Daily Information</div>
+    <div id="daily-info" class="daily-info-content">
+      No announcements at this time.
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="title">Out Of Service Units</div>
+    <div id="oos-container"></div>
+  </section>
+
+</div>
+
+<script>
+function updateClock(){
+  const now = new Date();
+
+  document.getElementById("clock").textContent =
+    now.toLocaleTimeString("en-US", {
+      hour12:false,
+      hour:"2-digit",
+      minute:"2-digit"
+    });
+
+  document.getElementById("date-display").textContent =
+    now.toLocaleDateString("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric"
+    });
+}
+
+setInterval(updateClock, 1000);
+updateClock();
+
+function setOpsField(id, value){
+  const el = document.getElementById(id);
+  const container = el.closest(".ops-field");
+  const cleanValue = (value || "").trim();
+
+  if(cleanValue !== ""){
+    el.textContent = cleanValue;
+    container.style.display = "";
+  } else {
+    el.textContent = "";
+    container.style.display = "none";
+  }
+}
+
+/* Customized variant for Med Direction to allow default if backend payload lacks it */
+function setMedDirectionField(id, value){
+  const el = document.getElementById(id);
+  const cleanValue = (value || "").trim();
+  if(cleanValue !== ""){
+    el.textContent = cleanValue;
+  } else {
+    el.textContent = "716-626-4011";
+  }
+}
+
+/*
+  Basic client-side sanitizer for the rich text display.
+*/
+function sanitizeRichText(html){
+  const template = document.createElement("template");
+  template.innerHTML = html;
+
+  const allowedTags = [
+    "P", "BR", "STRONG", "B", "EM", "I", "U",
+    "UL", "OL", "LI", "A", "SPAN"
+  ];
+
+  const allowedAttributes = {
+    "A": ["href", "target", "rel"],
+    "SPAN": ["style"]
+  };
+
+  function cleanNode(node){
+    const children = Array.from(node.childNodes);
+
+    children.forEach(child => {
+      if(child.nodeType === Node.ELEMENT_NODE){
+        if(!allowedTags.includes(child.tagName)){
+          child.replaceWith(...Array.from(child.childNodes));
+          return;
+        }
+
+        Array.from(child.attributes).forEach(attr => {
+          const tagAllowedAttrs = allowedAttributes[child.tagName] || [];
+
+          if(!tagAllowedAttrs.includes(attr.name)){
+            child.removeAttribute(attr.name);
+          }
+        });
+
+        if(child.tagName === "A"){
+          const href = child.getAttribute("href") || "";
+
+          if(
+            href.startsWith("http://") ||
+            href.startsWith("https://") ||
+            href.startsWith("mailto:")
+          ){
+            child.setAttribute("target", "_blank");
+            child.setAttribute("rel", "noopener noreferrer");
+          } else {
+            child.removeAttribute("href");
+          }
+        }
+
+        if(child.tagName === "SPAN"){
+          const style = child.getAttribute("style") || "";
+
+          const safeStyles = style
+            .split(";")
+            .map(s => s.trim())
+            .filter(s =>
+              s.startsWith("color:") ||
+              s.startsWith("background-color:") ||
+              s.startsWith("font-weight:") ||
+              s.startsWith("text-decoration:")
+            )
+            .join("; ");
+
+          if(safeStyles){
+            child.setAttribute("style", safeStyles);
+          } else {
+            child.removeAttribute("style");
+          }
+        }
+
+        cleanNode(child);
+      } else if(child.nodeType !== Node.TEXT_NODE){
+        child.remove();
+      }
+    });
+  }
+
+  cleanNode(template.content);
+  return template.innerHTML;
+}
+
+function parseStartTime(value){
+  const raw = String(value || "").trim();
+
+  if(raw === ""){
+    return Number.MAX_SAFE_INTEGER;
+  }
+
+  const operationalDayStartMinutes = 5 * 60;
+  const startTime = raw.split("-")[0].trim();
+  let minutesFromMidnight = Number.MAX_SAFE_INTEGER;
+  let match = startTime.match(/^(\d{1,2})(?::?(\d{2}))?$/);
+
+  if(match){
+    const hours = Number(match[1]);
+    const minutes = Number(match[2] || 0);
+
+    if(hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59){
+      minutesFromMidnight = hours * 60 + minutes;
+    }
+  } else {
+    match = startTime.match(/^(\d{1,2})(?::(\d{2}))?\s*(AM|PM)$/i);
+
+    if(match){
+      let hours = Number(match[1]);
+      const minutes = Number(match[2] || 0);
+      const meridiem = match[3].toUpperCase();
+
+      if(hours >= 1 && hours <= 12 && minutes >= 0 && minutes <= 59){
+        if(meridiem === "PM" && hours !== 12) hours += 12;
+        if(meridiem === "AM" && hours === 12) hours = 0;
+
+        minutesFromMidnight = hours * 60 + minutes;
+      }
+    }
+  }
+
+  if(minutesFromMidnight === Number.MAX_SAFE_INTEGER){
+    return Number.MAX_SAFE_INTEGER;
+  }
+
+  if(minutesFromMidnight < operationalDayStartMinutes){
+    return minutesFromMidnight + 1440;
+  }
+
+  return minutesFromMidnight;
+}
+
+async function loadBoard(){
+  const r = await fetch("/api/board?ts=" + Date.now());
+  const data = await r.json();
+
+  setOpsField("crewChief", data.operations?.crewChief);
+  setOpsField("assistantChief", data.operations?.assistantChief);
+  setOpsField("dispatcher", data.operations?.dispatcher);
+  setOpsField("onCallOfficer", data.operations?.onCallOfficer);
+  setOpsField("comsSupervisor", data.operations?.comsSupervisor);
+  setMedDirectionField("medicalDirection", data.operations?.medicalDirection);
+
+  const body = document.getElementById("assignment-body");
+
+  const vehicles = (data.vehicles || []).slice().sort((a, b) => {
+    return parseStartTime(a.time) - parseStartTime(b.time);
+  });
+
+  body.innerHTML = vehicles.map(v => `
+    <tr>
+      <td>${v.vehicle || ""}</td>
+      <td>${v.shiftId || ""}</td>
+      <td>${v.time || ""}</td>
+      <td>${v.crew1 || ""}</td>
+      <td>${v.crew2 || ""}</td>
+      <td>${v.crew3 || ""}</td>
+      <td>${v.levelOfCare || ""}</td>
+      <td>${v.comments || ""}</td>
+    </tr>
+  `).join("");
+
+  const alerts = (data.hospitals || []).filter(h => h.status === "RED" || h.status === "ORANGE");
+
+  if(alerts.length === 0){
+    document.getElementById("hospital-column-1").innerHTML =
+      "<div style='color:white;font-weight:bold'>ALL HOSPITALS OPEN</div>";
+    document.getElementById("hospital-column-2").innerHTML = "";
+  } else {
+    const mid = Math.ceil(alerts.length / 2);
+    const cols = [alerts.slice(0, mid), alerts.slice(mid)];
+
+    cols.forEach((group, i) => {
+      document.getElementById("hospital-column-" + (i + 1)).innerHTML =
+        group.map(h => `
+          <div class="hospital-card ${h.status.toLowerCase()}">
+            <div class="hospital-name">${h.facility}</div>
+            ${h.comment ? `<div class="hospital-comment">${h.comment}</div>` : ""}
+          </div>
+        `).join("");
+    });
+  }
+
+  const dailyInfo = document.getElementById("daily-info");
+
+  if(dailyInfo){
+    const infoHtml = (data.dailyInfo || "").trim();
+
+    dailyInfo.innerHTML = infoHtml !== ""
+      ? sanitizeRichText(infoHtml)
+      : "No announcements at this time.";
+  }
+
+  const oos = (data.oos || []);
+  const container = document.getElementById("oos-container");
+
+  if(oos.length === 0){
+    container.innerHTML = "<div style='color:white'>No units out of service</div>";
+  } else {
+    container.innerHTML = oos.map(o => `
+      <div class="oos-card">
+        <b>${o.vehicle}</b><br>
+        ${o.reason}
+      </div>
+    `).join("");
+  }
+
+  document.getElementById("json-refresh").textContent =
+    new Date().toLocaleTimeString("en-US", {
+      hour12:false,
+      hour:"2-digit",
+      minute:"2-digit"
+    });
+}
+
+setInterval(loadBoard, 15000);
+loadBoard();
+
+async function updateWeather(){
+  try{
+    const r = await fetch(
+      "https://api.open-meteo.com/v1/forecast?latitude=42.961&longitude=-77.140&current_weather=true&temperature_unit=fahrenheit&windspeed_unit=mph"
+    );
+
+    const d = await r.json();
+
+    const weatherCodes = {
+      0:"Clear", 1:"Mostly Clear", 2:"Partly Cloudy", 3:"Cloudy",
+      45:"Fog", 48:"Fog", 51:"Light Drizzle", 53:"Drizzle",
+      55:"Heavy Drizzle", 61:"Light Rain", 63:"Rain", 65:"Heavy Rain",
+      71:"Light Snow", 73:"Snow", 75:"Heavy Snow", 80:"Rain Showers",
+      81:"Rain Showers", 82:"Heavy Showers", 95:"Thunderstorm",
+      96:"Storm / Hail", 99:"Storm / Hail"
+    };
+
+    const condition = weatherCodes[d.current_weather.weathercode] || "Unknown";
+
+    document.getElementById("weather-condition").textContent = condition;
+    document.getElementById("weather-temp").textContent = Math.round(d.current_weather.temperature) + "°F";
+    document.getElementById("weather-wind").textContent = Math.round(d.current_weather.windspeed) + " mph";
+
+    document.getElementById("weather-refresh").textContent =
+      new Date().toLocaleTimeString("en-US", {
+        hour12:false,
+        hour:"2-digit",
+        minute:"2-digit"
+      });
+
+  } catch(e){
+    console.log("Open-Meteo weather error:", e);
+    document.getElementById("weather-condition").textContent = "Unavailable";
+    document.getElementById("weather-temp").textContent = "--";
+    document.getElementById("weather-wind").textContent = "--";
+  }
+
+  try{
+    const banner = document.getElementById("weather-alert-banner");
+
+    const alertsReq = await fetch(
+      "https://api.weather.gov/alerts/active?point=42.961,-77.140",
+      { headers: { "Accept": "application/geo+json" } }
+    );
+
+    const alertsData = await alertsReq.json();
+    const alerts = alertsData.features || [];
+
+    if(alerts.length > 0){
+      const unique = [...new Set(alerts.map(a => a.properties.event).filter(Boolean))];
+      const mainEvent = unique[0];
+      let bannerClass = "alert-advisory";
+
+      if(mainEvent.toLowerCase().includes("warning")) bannerClass = "alert-warning";
+      else if(mainEvent.toLowerCase().includes("watch")) bannerClass = "alert-watch";
+
+      banner.className = "alert-banner " + bannerClass;
+      banner.textContent = "⚠ WEATHER ALERT: " + unique.join(" | ");
+      banner.style.display = "block";
+    } else {
+      banner.style.display = "none";
+    }
+
+  } catch(e){
+    console.log("NWS alerts error:", e);
+    const banner = document.getElementById("weather-alert-banner");
+    if (banner) banner.style.display = "none";
+  }
+}
+
+setInterval(updateWeather, 600000);
+updateWeather();
+
+/* TV mode + fullscreen */
+const tvModeBtn = document.getElementById("tv-mode-btn");
+const fullscreenBtn = document.getElementById("fullscreen-btn");
+
+function setTvMode(enabled){
+  document.body.classList.toggle("tv-mode", enabled);
+  localStorage.setItem("mems-tv-mode", enabled ? "on" : "off");
+  tvModeBtn.textContent = enabled ? "TV Mode: On" : "TV Mode: Off";
+}
+
+tvModeBtn.addEventListener("click", async () => {
+  const enabled = !document.body.classList.contains("tv-mode");
+  setTvMode(enabled);
+
+  if(enabled && !document.fullscreenElement){
+    try{
+      await document.documentElement.requestFullscreen();
+    } catch(err){
+      console.log("Fullscreen request blocked:", err);
+    }
+  }
+});
+
+fullscreenBtn.addEventListener("click", async () => {
+  try{
+    if(!document.fullscreenElement){
+      await document.documentElement.requestFullscreen();
+    } else {
+      await document.exitFullscreen();
+    }
+  } catch(err){
+    console.log("Fullscreen toggle error:", err);
+  }
+});
+
+document.addEventListener("fullscreenchange", () => {
+  fullscreenBtn.textContent = document.fullscreenElement ? "Exit Fullscreen" : "Fullscreen";
+});
+
+if(localStorage.getItem("mems-tv-mode") === "on"){
+  setTvMode(true);
+}
+</script>
+
+</body>
+</html>

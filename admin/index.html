@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MEMS-Batavia-ADMIN CENTER</title>
+  <link rel="stylesheet" href="/style.css" />
+
+  <style>
+    #hospitalTable td select,
+    #hospitalTable td input,
+    #vehicleTable td input,
+    #vehicleTable td select,
+    #oosTable td input {
+      min-height: 42px;
+    }
+
+    #hospitalTable .facility {
+      background: #d9d9d9;
+      color: #000;
+      font-weight: bold;
+    }
+
+    .daily-info-admin-box {
+      background: transparent;
+      color: #fff;
+      border-radius: 6px;
+    }
+
+    #dailyInfoInput {
+      width: 100%;
+      min-height: 180px;
+      box-sizing: border-box;
+      padding: 12px;
+      border-radius: 6px;
+      border: 1px solid rgba(255,255,255,.25);
+      background: rgba(255,255,255,.08);
+      color: #fff;
+      font-family: Arial, Helvetica, sans-serif;
+      font-size: 16px;
+      line-height: 1.35;
+      resize: vertical;
+    }
+
+    #dailyInfoInput::placeholder {
+      color: rgba(255,255,255,.65);
+    }
+
+    .admin-help-text {
+      margin-top: 8px;
+      font-size: 0.9rem;
+      color: #fff;
+    }
+
+    /* Ensures the med direction field handles layout cleanly in the portal grid */
+    .full-width-label {
+      grid-column: span 2;
+    }
+    @media (max-width: 600px) {
+      .full-width-label {
+        grid-column: span 1;
+      }
+    }
+
+    /* Real-time safety alert banner style */
+    .presence-banner {
+      background: #ff9800;
+      color: #000;
+      padding: 14px 20px;
+      border-radius: 6px;
+      margin-bottom: 24px;
+      font-weight: bold;
+      border-left: 6px solid #e65100;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+      animation: slideDown 0.3s ease-out;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="admin-page">
+    <h1>MERCY EMS - BATAVIA ADMIN PORTAL</h1>
+
+    <p>
+      <button type="button" onclick="exportPDF()">Export PDF</button>
+    </p>
+
+    <section class="admin-section">
+      <h2>Operations / Dispatch Team</h2>
+      <div class="form-grid">
+        <label>Crew Chief
+          <input id="crewChief" type="text" />
+        </label>
+        <label>Operations Manager
+          <input id="assistantChief" type="text" />
+        </label>
+        <label>Dispatcher(s)
+          <input id="dispatcher" type="text" />
+        </label>
+        <label>On-Call Officer
+          <input id="onCallOfficer" type="text" />
+        </label>
+        <label>Coms Supervisor
+          <input id="comsSupervisor" type="text" />
+        </label>
+        
+        <label class="full-width-label">Medical Direction Phone # (Only update if directed to do so)
+          <input id="medicalDirection" type="text" placeholder="716-626-4011" />
+        </label>
+      </div>
+    </section>
+
+    <section class="admin-section">
+      <h2>Vehicle Assignments</h2>
+      <table id="vehicleTable">
+        <thead>
+          <tr>
+            <th>Vehicle</th>
+            <th>Shift ID</th>
+            <th>Time</th>
+            <th>Crew 1</th>
+            <th>Crew 2</th>
+            <th>Crew 3</th>
+            <th>Level of Care</th>
+            <th>Comments</th>
+            <th>Delete</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p>
+        <button type="button" id="addVehicleRowBtn">Add Vehicle Row</button>
+      </p>
+    </section>
+
+    <section class="admin-section">
+      <h2>Hospital Status</h2><br>
+      <h3>(Orange = Facility is missing a service or experiencing an issue, Red = Facility is not accepting PTs.)</h3>
+      <table id="hospitalTable">
+        <thead>
+          <tr>
+            <th>Facility</th>
+            <th>Status</th>
+            <th>Comment</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <section class="admin-section">
+      <h2>Daily Information / Announcements</h2>
+      <div class="daily-info-admin-box">
+        <textarea id="dailyInfoInput" placeholder="Enter daily information, reminders, schedule notes, email reminders, etc."></textarea>
+      </div>
+      <p class="admin-help-text">
+        This message appears on the display board and at the bottom of the PDF export.
+      </p>
+    </section>
+
+    <section class="admin-section">
+      <h2>Out of Service Units</h2>
+      <table id="oosTable">
+        <thead>
+          <tr>
+            <th>Vehicle</th>
+            <th>Reason</th>
+            <th>Delete</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+      <p>
+        <button type="button" id="addOosRowBtn">Add OOS Row</button>
+      </p>
+    </section>
+
+    <section class="admin-section admin-save-bar">
+      <button id="saveBtn" type="button">Save Changes</button>
+      <p id="statusMsg">Loading current board data...</p>
+    </section>
+  </div>
+
+  <script>
+    // Global tracking states for conflict management
+    let currentRevisionId = null;
+    let mySessionId = Math.random().toString(36).substring(2, 15);
+
+    function exportPDF() {
+      const user = "Rig assignments are always scheduled to change!";
+      const now = new Date();
+
+      const medDirValue = document.getElementById("medicalDirection").value.trim() || "716-626-4011";
+      const rows = Array.from(document.querySelectorAll("#vehicleTable tbody tr"));
+
+      const tableRows = rows.map(row => `
+        <tr>
+          <td>${escapeHtml(row.querySelector(".vehicle").value)}</td>
+          <td>${escapeHtml(row.querySelector(".shiftId").value)}</td>
+          <td>${escapeHtml(row.querySelector(".time").value)}</td>
+          <td>${escapeHtml(row.querySelector(".crew1").value)}</td>
+          <td>${escapeHtml(row.querySelector(".crew2").value)}</td>
+          <td>${escapeHtml(row.querySelector(".crew3").value)}</td>
+          <td>${escapeHtml(row.querySelector(".levelOfCare").value)}</td>
+          <td>${escapeHtml(row.querySelector(".comments").value)}</td>
+        </tr>
+      `).join("");
+
+      const dailyInfoHtml = getDailyInfoHtml();
+      const dailyInfoSection = dailyInfoHtml.trim() !== ""
+        ? `
+          <div class="daily-info-pdf">
+            <h3>Daily Information / Announcements</h3>
+            <div class="daily-info-content">
+              ${escapeHtml(dailyInfoHtml)}
+            </div>
+          </div>
+        `
+        : "";
+
+      const printWindow = window.open("", "_blank");
+
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Vehicle Assignments</title>
+          <style>
+            @page {
+              size: landscape;
+              margin: 0.5in;
+            }
+
+            body {
+              font-family: Arial, sans-serif;
+              font-size: 11pt;
+              color: #000;
+              margin: 0;
+            }
+
+            h2 {
+              text-align: center;
+              margin: 0 0 4px 0;
+              font-size: 16pt;
+              font-weight: bold;
+            }
+
+            .med-dir-pdf-line {
+              text-align: center;
+              font-size: 11pt;
+              font-weight: bold;
+              margin-bottom: 12px;
+            }
+
+            table {
+              width: 100%;
+              border-collapse: collapse;
+            }
+
+            th, td {
+              border: 1px solid #000;
+              padding: 4px 6px;
+              text-align: left;
+              vertical-align: top;
+            }
+
+            th {
+              font-weight: bold;
+            }
+
+            thead {
+              display: table-header-group;
+            }
+
+            .daily-info-pdf {
+              margin-top: 14px;
+              border: 1px solid #000;
+              padding: 8px;
+              page-break-inside: avoid;
+            }
+
+            .daily-info-pdf h3 {
+              margin: 0 0 6px 0;
+              font-size: 12pt;
+              text-transform: uppercase;
+            }
+
+            .daily-info-content {
+              font-size: 10.5pt;
+              line-height: 1.3;
+              white-space: pre-wrap;
+            }
+
+            .daily-info-content p {
+              margin: 0 0 6px 0;
+            }
+
+            .daily-info-content ul,
+            .daily-info-content ol {
+              margin-top: 4px;
+              margin-bottom: 4px;
+              padding-left: 22px;
+            }
+
+            .footer {
+              margin-top: 10px;
+              font-size: 9pt;
+              display: flex;
+              justify-content: space-between;
+            }
+          </style>
+        </head>
+        <body>
+          <h2>Mercy Flight EMS: Finger Lakes Base - Vehicle Assignments</h2>
+          <div class="med-dir-pdf-line">Medical Direction: ${escapeHtml(medDirValue)}</div>
+          <table>
+            <thead>
+              <tr>
+                <th>Vehicle</th>
+                <th>Shift ID</th>
+                <th>Time</th>
+                <th>Crew 1</th>
+                <th>Crew 2</th>
+                <th>Crew 3</th>
+                <th>Level of Care</th>
+                <th>Comments</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tableRows}
+            </tbody>
+          </table>
+
+          ${dailyInfoSection}
+
+          <div class="footer">
+            <span>REMINDER: ${escapeHtml(user)}</span>
+            <span>${escapeHtml(now.toLocaleString())}</span>
+          </div>
+        </body>
+        </html>
+      `);
+
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function getDailyInfoHtml() {
+      const dailyInfoInput = document.getElementById("dailyInfoInput");
+      if (!dailyInfoInput) return "";
+      return dailyInfoInput.value.trim();
+    }
+
+    function updateLevelOfCareClass(selectEl) {
+      selectEl.classList.remove(
+        "level-care-bls",
+        "level-care-als",
+        "level-care-sct",
+        "level-care-rsi"
+      );
+
+      switch (selectEl.value) {
+        case "BLS":
+          selectEl.classList.add("level-care-bls");
+          break;
+        case "ALS":
+          selectEl.classList.add("level-care-als");
+          break;
+        case "SCT":
+          selectEl.classList.add("level-care-sct");
+          break;
+        case "ALS/RSI":
+          selectEl.classList.add("level-care-rsi");
+          break;
+      }
+    }
+
+    function createVehicleRow(vehicle = {}) {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><input type="text" class="vehicle" value="${escapeHtml(vehicle.vehicle || "")}"></td>
+        <td><input type="text" class="shiftId" value="${escapeHtml(vehicle.shiftId || "")}"></td>
+        <td><input type="text" class="time" value="${escapeHtml(vehicle.time || "")}"></td>
+        <td><input type="text" class="crew1" value="${escapeHtml(vehicle.crew1 || "")}"></td>
+        <td><input type="text" class="crew2" value="${escapeHtml(vehicle.crew2 || "")}"></td>
+        <td><input type="text" class="crew3" value="${escapeHtml(vehicle.crew3 || "")}"></td>
+        <td>
+          <select class="levelOfCare">
+            <option value="" ${!vehicle.levelOfCare ? "selected" : ""}>Select</option>
+            <option value="BLS" ${vehicle.levelOfCare === "BLS" ? "selected" : ""}>BLS</option>
+            <option value="ALS" ${vehicle.levelOfCare === "ALS" ? "selected" : ""}>ALS</option>
+            <option value="SCT" ${vehicle.levelOfCare === "SCT" ? "selected" : ""}>SCT</option>
+            <option value="ALS/RSI" ${vehicle.levelOfCare === "ALS/RSI" ? "selected" : ""}>ALS/RSI</option>
+          </select>
+        </td>
+        <td><input type="text" class="comments" value="${escapeHtml(vehicle.comments || "")}"></td>
+        <td><button type="button" class="deleteRowBtn">Delete</button></td>
+      `;
+
+      const deleteBtn = row.querySelector(".deleteRowBtn");
+      deleteBtn.addEventListener("click", () => row.remove());
+
+      const locSelect = row.querySelector(".levelOfCare");
+      locSelect.addEventListener("change", () => updateLevelOfCareClass(locSelect));
+      updateLevelOfCareClass(locSelect);
+
+      return row;
+    }
+
+    function createHospitalRow(hospital = {}) {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>
+          <input type="text" class="facility" value="${escapeHtml(hospital.facility || "")}" readonly>
+        </td>
+        <td>
+          <select class="status">
+            <option value="OPEN" ${hospital.status === "OPEN" ? "selected" : ""}>OPEN</option>
+            <option value="RED" ${hospital.status === "RED" ? "selected" : ""}>RED</option>
+            <option value="ORANGE" ${hospital.status === "ORANGE" ? "selected" : ""}>ORANGE</option>
+          </select>
+        </td>
+        <td>
+          <input type="text" class="comment" value="${escapeHtml(hospital.comment || "")}" placeholder="Enter comment">
+        </td>
+      `;
+      return row;
+    }
+
+    function createOosRow(oos = {}) {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><input type="text" class="oos-vehicle" value="${escapeHtml(oos.vehicle || "")}"></td>
+        <td><input type="text" class="oos-reason" value="${escapeHtml(oos.reason || "")}"></td>
+        <td><button type="button" class="deleteOosRowBtn">Delete</button></td>
+      `;
+      row.querySelector(".deleteOosRowBtn").addEventListener("click", () => row.remove());
+      return row;
+    }
+
+    function loadForm(data) {
+      document.getElementById("crewChief").value = data.operations?.crewChief || "";
+      document.getElementById("assistantChief").value = data.operations?.assistantChief || "";
+      document.getElementById("dispatcher").value = data.operations?.dispatcher || "";
+      document.getElementById("onCallOfficer").value = data.operations?.onCallOfficer || "";
+      document.getElementById("comsSupervisor").value = data.operations?.comsSupervisor || "";
+      document.getElementById("medicalDirection").value = data.operations?.medicalDirection || "716-626-4011";
+
+      const vehicleBody = document.querySelector("#vehicleTable tbody");
+      vehicleBody.innerHTML = "";
+      (data.vehicles || []).forEach(vehicle => {
+        vehicleBody.appendChild(createVehicleRow(vehicle));
+      });
+
+      const hospitalBody = document.querySelector("#hospitalTable tbody");
+      hospitalBody.innerHTML = "";
+      (data.hospitals || []).forEach(hospital => {
+        hospitalBody.appendChild(createHospitalRow(hospital));
+      });
+
+      const dailyInfoInput = document.getElementById("dailyInfoInput");
+      if (dailyInfoInput) {
+        dailyInfoInput.value = data.dailyInfo || "";
+      }
+
+      const oosBody = document.querySelector("#oosTable tbody");
+      oosBody.innerHTML = "";
+      (data.oos || []).forEach(item => {
+        oosBody.appendChild(createOosRow(item));
+      });
+    }
+
+    function collectFormData() {
+      const operations = {
+        crewChief: document.getElementById("crewChief").value.trim(),
+        assistantChief: document.getElementById("assistantChief").value.trim(),
+        dispatcher: document.getElementById("dispatcher").value.trim(),
+        onCallOfficer: document.getElementById("onCallOfficer").value.trim(),
+        comsSupervisor: document.getElementById("comsSupervisor").value.trim(),
+        medicalDirection: document.getElementById("medicalDirection").value.trim()
+      };
+
+      const vehicles = Array.from(document.querySelectorAll("#vehicleTable tbody tr")).map(row => ({
+        vehicle: row.querySelector(".vehicle").value.trim(),
+        shiftId: row.querySelector(".shiftId").value.trim(),
+        time: row.querySelector(".time").value.trim(),
+        crew1: row.querySelector(".crew1").value.trim(),
+        crew2: row.querySelector(".crew2").value.trim(),
+        crew3: row.querySelector(".crew3").value.trim(),
+        levelOfCare: row.querySelector(".levelOfCare").value.trim(),
+        comments: row.querySelector(".comments").value.trim()
+      })).filter(v =>
+        v.vehicle !== "" ||
+        v.shiftId !== "" ||
+        v.time !== "" ||
+        v.crew1 !== "" ||
+        v.crew2 !== "" ||
+        v.crew3 !== "" ||
+        v.levelOfCare !== "" ||
+        v.comments !== ""
+      );
+
+      const hospitals = Array.from(document.querySelectorAll("#hospitalTable tbody tr")).map(row => ({
+        facility: row.querySelector(".facility").value.trim(),
+        status: row.querySelector(".status").value,
+        comment: row.querySelector(".comment").value.trim()
+      }));
+
+      const oos = Array.from(document.querySelectorAll("#oosTable tbody tr")).map(row => ({
+        vehicle: row.querySelector(".oos-vehicle").value.trim(),
+        reason: row.querySelector(".oos-reason").value.trim()
+      })).filter(item => item.vehicle !== "" || item.reason !== "");
+
+      const dailyInfo = getDailyInfoHtml();
+
+      return { operations, vehicles, hospitals, oos, dailyInfo };
+    }
+
+    // Dynamic UI Warning Banner controls
+    function injectPresenceBanner(message) {
+      const existing = document.querySelector(".presence-banner");
+      if (existing) existing.remove();
+
+      const banner = document.createElement("div");
+      banner.className = "presence-banner";
+      banner.innerHTML = `<span>${message}</span>`;
+      
+      const adminPage = document.querySelector(".admin-page");
+      if (adminPage) {
+        adminPage.insertBefore(banner, adminPage.firstChild);
+      }
+    }
+
+    function removePresenceBanner() {
+      const existing = document.querySelector(".presence-banner");
+      if (existing) existing.remove();
+    }
+
+    document.getElementById("addVehicleRowBtn").addEventListener("click", () => {
+      document.querySelector("#vehicleTable tbody").appendChild(createVehicleRow({}));
+    });
+
+    document.getElementById("addOosRowBtn").addEventListener("click", () => {
+      document.querySelector("#oosTable tbody").appendChild(createOosRow({}));
+    });
+
+    // Save Changes Handler containing safety version stamps
+    document.getElementById("saveBtn").addEventListener("click", async () => {
+      const updatedData = collectFormData();
+      
+      const payload = {
+        ...updatedData,
+        revisionId: currentRevisionId,
+        senderId: mySessionId
+      };
+
+      try {
+        const response = await fetch("/api/board", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
+
+        // Handle mid-air collision warning natively via HTTP Status codes
+        if (response.status === 409) {
+          throw new Error("Conflict! Another dispatcher saved updates to this board while you were editing.");
+        }
+
+        if (!response.ok) {
+          throw new Error(`Save failed: ${response.status}`);
+        }
+
+        const result = await response.json();
+        
+        // Match our local layout identity token with the fresh database revision record
+        currentRevisionId = result.revisionId;
+
+        document.getElementById("statusMsg").textContent = "Board updated successfully.";
+        removePresenceBanner();
+      } catch (error) {
+        document.getElementById("statusMsg").textContent = "Error saving board: " + error.message;
+        injectPresenceBanner(`❌ Save Denied: ${error.message} To protect active data, please copy your edits, reload this tab, and reapply them.`);
+      }
+    });
+
+    // Initial Load sequence
+    fetch(`/api/board?ts=${Date.now()}`, { cache: "no-store" })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Load failed: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(data => {
+        loadForm(data);
+        
+        // Track the baseline revision key mapped by the server JSON response
+        currentRevisionId = data.revisionId || "initial-revision-v1";
+        document.getElementById("statusMsg").textContent = "Current board data loaded.";
+      })
+      .catch(error => {
+        document.getElementById("statusMsg").textContent = "Error loading board data: " + error.message;
+      });
+  </script>
+</body>
+</html>
