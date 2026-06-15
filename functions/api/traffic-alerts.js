@@ -9,28 +9,14 @@ export async function onRequestGet(context) {
   }
 
   const url = new URL(request.url);
-  const region = (url.searchParams.get("region") || "batavia").toLowerCase();
+  const region = (url.searchParams.get("region") || "batavias").toLowerCase();
 
   const regionCountyMap = {
-    batavia: [
-      "Genesee",
-      "Wyoming",
-      "Orleans",
-      "Monroe",
-      "Erie"
-    ],
-
-    fingerlakes: [
-      "Ontario",
-      "Wayne",
-      "Seneca",
-      "Yates",
-      "Livingston",
-      "Monroe"
-    ]
+    batavia: ["Genesee", "Wyoming", "Orleans", "Erie"],
+    fingerlakes: ["Ontario", "Wayne", "Seneca", "Yates", "Livingston", "Monroe"]
   };
 
-  const allowedCounties = regionCountyMap[region] || regionCountyMap.fingerlakes;
+  const allowedCounties = regionCountyMap[region] || regionCountyMap.batavia;
 
   const apiUrl =
     "https://511ny.org/api/GetEvents?key=" +
@@ -39,9 +25,7 @@ export async function onRequestGet(context) {
 
   try {
     const response = await fetch(apiUrl, {
-      headers: {
-        Accept: "application/json"
-      }
+      headers: { Accept: "application/json" }
     });
 
     if (!response.ok) {
@@ -65,7 +49,39 @@ export async function onRequestGet(context) {
           ? raw.events
           : [];
 
-    const filteredEvents = rawEvents.filter(event => {
+    const allowedTrafficKeywords = [
+      "accident",
+      "crash",
+      "collision",
+      "closure",
+      "closed",
+      "road closed",
+      "lane closed",
+      "all lanes closed",
+      "blocked",
+      "overturned",
+      "vehicle fire",
+      "multi vehicle",
+      "multi-vehicle"
+    ];
+
+    const relevantEvents = rawEvents.filter(event => {
+      const searchableText = [
+        event.EventType,
+        event.Type,
+        event.Description,
+        event.Location,
+        event.RoadwayName,
+        event.Direction,
+        event.Notes
+      ].filter(Boolean).join(" ").toLowerCase();
+
+      return allowedTrafficKeywords.some(keyword =>
+        searchableText.includes(keyword)
+      );
+    });
+
+    const filteredEvents = relevantEvents.filter(event => {
       const county = String(event.CountyName || event.countyName || "").trim();
 
       return allowedCounties.some(allowed =>
@@ -77,11 +93,21 @@ export async function onRequestGet(context) {
       const severityRaw = String(event.Severity || event.severity || "").toLowerCase();
 
       let severity = "advisory";
-      if (severityRaw.includes("critical") || severityRaw.includes("major") || severityRaw.includes("high")) {
+      if (
+        severityRaw.includes("critical") ||
+        severityRaw.includes("major") ||
+        severityRaw.includes("high")
+      ) {
         severity = "critical";
-      } else if (severityRaw.includes("medium") || severityRaw.includes("moderate")) {
+      } else if (
+        severityRaw.includes("medium") ||
+        severityRaw.includes("moderate")
+      ) {
         severity = "warning";
-      } else if (severityRaw.includes("low") || severityRaw.includes("minor")) {
+      } else if (
+        severityRaw.includes("low") ||
+        severityRaw.includes("minor")
+      ) {
         severity = "info";
       }
 
@@ -115,6 +141,7 @@ export async function onRequestGet(context) {
         success: true,
         region,
         counties: allowedCounties,
+        filters: ["accidents", "closures"],
         alerts
       },
       {
