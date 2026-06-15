@@ -263,6 +263,55 @@ body.tv-mode .hospital-card{
   background:#ef6c00;
 }
 
+/* Traffic / Regional Alerts */
+.traffic-alert-card{
+  padding:8px;
+  border-radius:8px;
+  color:white;
+  margin-bottom:8px;
+}
+
+body.tv-mode .traffic-alert-card{
+  padding:12px;
+  border-radius:12px;
+}
+
+.traffic-alert-title{
+  font-size:var(--fs-hospital);
+  font-weight:bold;
+  line-height:1.2;
+}
+
+.traffic-alert-message{
+  margin-top:4px;
+  font-size:clamp(0.85rem, 0.75rem + 0.35vw, 1rem);
+}
+
+body.tv-mode .traffic-alert-message{
+  font-size:clamp(1rem, 0.9rem + 0.45vw, 1.25rem);
+}
+
+.critical{
+  background:#b71c1c;
+  color:white;
+  animation:pulse 2s infinite;
+}
+
+.warning{
+  background:#ef6c00;
+  color:white;
+}
+
+.advisory{
+  background:#f9a825;
+  color:black;
+}
+
+.info{
+  background:#1565c0;
+  color:white;
+}
+
 .hospital-name{
   font-size:var(--fs-hospital);
   font-weight:bold;
@@ -573,6 +622,13 @@ body.tv-mode .tv-btn{
     </div>
   </section>
 
+  <section class="panel">
+    <div class="title">Traffic / Regional Alerts</div>
+    <div id="traffic-alerts-container">
+      <div style="color:white">Loading traffic alerts...</div>
+    </div>
+  </section>
+
   <section class="panel info-panel">
     <div class="title">Daily Information</div>
     <div id="daily-info" class="daily-info-content">
@@ -758,6 +814,19 @@ function parseStartTime(value){
   return minutesFromMidnight;
 }
 
+
+async function loadTrafficAlerts(){
+  try{
+    const r = await fetch("/api/traffic-alerts?ts=" + Date.now());
+    const data = await r.json();
+
+    return Array.isArray(data.alerts) ? data.alerts : [];
+  } catch(e){
+    console.log("Traffic alerts error:", e);
+    return [];
+  }
+}
+
 async function loadBoard(){
   const r = await fetch("/api/board?ts=" + Date.now());
   const data = await r.json();
@@ -804,6 +873,28 @@ async function loadBoard(){
           </div>
         `).join("");
     });
+  }
+
+  const trafficAlerts = await loadTrafficAlerts();
+  const trafficContainer = document.getElementById("traffic-alerts-container");
+
+  if(trafficContainer){
+    if(trafficAlerts.length === 0){
+      trafficContainer.innerHTML =
+        "<div style='color:white'>No active traffic alerts</div>";
+    } else {
+      trafficContainer.innerHTML = trafficAlerts.map(alert => `
+        <div class="traffic-alert-card ${alert.severity || "advisory"}">
+          <div class="traffic-alert-title">${alert.title || "Traffic Alert"}</div>
+          <div class="traffic-alert-message">
+            ${alert.source ? `<b>${alert.source}</b><br>` : ""}
+            ${alert.roadway ? `<b>${alert.roadway}</b><br>` : ""}
+            ${alert.county ? `<b>${alert.county} County</b><br>` : ""}
+            ${alert.message || ""}
+          </div>
+        </div>
+      `).join("");
+    }
   }
 
   const dailyInfo = document.getElementById("daily-info");
