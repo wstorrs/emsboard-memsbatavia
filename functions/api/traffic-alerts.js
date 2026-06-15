@@ -1,5 +1,5 @@
 export async function onRequestGet(context) {
-  const { env } = context;
+  const { request, env } = context;
 
   if (!env.NY511_API_KEY) {
     return Response.json(
@@ -8,8 +8,32 @@ export async function onRequestGet(context) {
     );
   }
 
+  const url = new URL(request.url);
+  const region = (url.searchParams.get("region") || "fingerlakes").toLowerCase();
+
+  const regionCountyMap = {
+    batavia: [
+      "Genesee",
+      "Wyoming",
+      "Orleans",
+      "Monroe",
+      "Erie"
+    ],
+
+    fingerlakes: [
+      "Ontario",
+      "Wayne",
+      "Seneca",
+      "Yates",
+      "Livingston",
+      "Monroe"
+    ]
+  };
+
+  const allowedCounties = regionCountyMap[region] || regionCountyMap.fingerlakes;
+
   const apiUrl =
-    "https://511ny.org/api/GetAlerts?key=" +
+    "https://511ny.org/api/GetEvents?key=" +
     encodeURIComponent(env.NY511_API_KEY) +
     "&format=json";
 
@@ -33,28 +57,64 @@ export async function onRequestGet(context) {
 
     const raw = await response.json();
 
-    const rawAlerts = Array.isArray(raw)
+    const rawEvents = Array.isArray(raw)
       ? raw
-      : Array.isArray(raw.Alerts)
-        ? raw.Alerts
-        : Array.isArray(raw.alerts)
-          ? raw.alerts
+      : Array.isArray(raw.Events)
+        ? raw.Events
+        : Array.isArray(raw.events)
+          ? raw.events
           : [];
 
-    const alerts = rawAlerts.map((alert, index) => ({
-      id: String(alert.Id || alert.ID || alert.id || "511ny-" + index),
-      source: "511NY",
-      severity: "advisory",
-      title: String(alert.Message || alert.Title || alert.EventType || "511NY Traffic Alert"),
-      message: String(alert.Notes || alert.Description || alert.Message || ""),
-      area: Array.isArray(alert.AreaNames)
-        ? alert.AreaNames.join(", ")
-        : String(alert.AreaName || alert.CountyName || "")
-    }));
+    const filteredEvents = rawEvents.filter(event => {
+      const county = String(event.CountyName || event.countyName || "").trim();
+
+      return allowedCounties.some(allowed =>
+        county.toLowerCase() === allowed.toLowerCase()
+      );
+    });
+
+    const alerts = filteredEvents.map((event, index) => {
+      const severityRaw = String(event.Severity || event.severity || "").toLowerCase();
+
+      let severity = "advisory";
+      if (severityRaw.includes("critical") || severityRaw.includes("major") || severityRaw.includes("high")) {
+        severity = "critical";
+      } else if (severityRaw.includes("medium") || severityRaw.includes("moderate")) {
+        severity = "warning";
+      } else if (severityRaw.includes("low") || severityRaw.includes("minor")) {
+        severity = "info";
+      }
+
+      return {
+        id: String(event.ID || event.Id || event.id || "511ny-event-" + index),
+        source: "511NY",
+        region,
+        severity,
+        title: String(
+          event.EventType ||
+          event.Type ||
+          event.RoadwayName ||
+          "511NY Traffic Event"
+        ),
+        message: [
+          event.Description,
+          event.Location,
+          event.Direction,
+          event.CountyName
+        ].filter(Boolean).join(" - "),
+        roadway: String(event.RoadwayName || ""),
+        county: String(event.CountyName || ""),
+        latitude: event.Latitude || null,
+        longitude: event.Longitude || null,
+        updated: String(event.LastUpdated || event.Updated || "")
+      };
+    });
 
     return Response.json(
       {
         success: true,
+        region,
+        counties: allowedCounties,
         alerts
       },
       {
