@@ -291,6 +291,18 @@ body.tv-mode .traffic-alert-message{
   font-size:clamp(1rem, 0.9rem + 0.45vw, 1.25rem);
 }
 
+.traffic-alerts-scroll{
+  max-height:220px;
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding-right:6px;
+  border-top:1px solid rgba(255,255,255,.15);
+}
+
+body.tv-mode .traffic-alerts-scroll{
+  max-height:280px;
+}
+
 .critical{
   background:#b71c1c;
   color:white;
@@ -498,6 +510,10 @@ body.tv-mode .tv-btn{
 }
 
 @media (max-width:700px){
+  .traffic-alerts-scroll{
+    max-height:200px;
+  }
+
   .board{
     padding:8px;
     gap:8px;
@@ -624,7 +640,7 @@ body.tv-mode .tv-btn{
 
   <section class="panel">
     <div class="title">Traffic / Regional Alerts</div>
-    <div id="traffic-alerts-container">
+    <div id="traffic-alerts-container" class="traffic-alerts-scroll">
       <div style="color:white">Loading traffic alerts...</div>
     </div>
   </section>
@@ -639,6 +655,13 @@ body.tv-mode .tv-btn{
 </div>
 
 <script>
+const TRAFFIC_ALERT_REFRESH_MS = 60000;
+const MAX_TRAFFIC_ALERTS_DISPLAYED = 5;
+
+let cachedTrafficAlerts = [];
+let lastTrafficAlertsFetch = 0;
+let lastTrafficAlertsSignature = "";
+
 function updateClock(){
   const now = new Date();
 
@@ -816,14 +839,33 @@ function parseStartTime(value){
 
 
 async function loadTrafficAlerts(){
+  const now = Date.now();
+
+  if(now - lastTrafficAlertsFetch < TRAFFIC_ALERT_REFRESH_MS){
+    return cachedTrafficAlerts;
+  }
+
   try{
-    const r = await fetch("/api/traffic-alerts?ts=" + Date.now());
+    const r = await fetch("/api/traffic-alerts?ts=" + now, {
+      cache: "no-store"
+    });
+
+    if(!r.ok){
+      throw new Error("Traffic alerts request failed: " + r.status);
+    }
+
     const data = await r.json();
 
-    return Array.isArray(data.alerts) ? data.alerts : [];
+    cachedTrafficAlerts = Array.isArray(data.alerts)
+      ? data.alerts.slice(0, MAX_TRAFFIC_ALERTS_DISPLAYED)
+      : [];
+
+    lastTrafficAlertsFetch = now;
+    return cachedTrafficAlerts;
   } catch(e){
     console.log("Traffic alerts error:", e);
-    return [];
+    lastTrafficAlertsFetch = now;
+    return cachedTrafficAlerts;
   }
 }
 
@@ -878,7 +920,23 @@ async function loadBoard(){
   const trafficAlerts = await loadTrafficAlerts();
   const trafficContainer = document.getElementById("traffic-alerts-container");
 
-  if(trafficContainer){
+  const trafficAlertsSignature = JSON.stringify(
+    trafficAlerts.map(alert => ({
+      id: alert.id || "",
+      source: alert.source || "",
+      severity: alert.severity || "",
+      title: alert.title || "",
+      roadway: alert.roadway || "",
+      county: alert.county || "",
+      message: alert.message || "",
+      updated: alert.updated || ""
+    }))
+  );
+
+  if(trafficContainer && trafficAlertsSignature !== lastTrafficAlertsSignature){
+    const previousScrollTop = trafficContainer.scrollTop;
+    lastTrafficAlertsSignature = trafficAlertsSignature;
+
     if(trafficAlerts.length === 0){
       trafficContainer.innerHTML =
         "<div style='color:white'>No active traffic alerts</div>";
@@ -895,6 +953,8 @@ async function loadBoard(){
         </div>
       `).join("");
     }
+
+    trafficContainer.scrollTop = previousScrollTop;
   }
 
   const dailyInfo = document.getElementById("daily-info");
