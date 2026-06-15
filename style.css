@@ -186,6 +186,59 @@ td textarea {
   z-index: 5;
 }
 
+/* Traffic alert ticker */
+.traffic-alert-card {
+  padding: 12px;
+  border-radius: 10px;
+  color: white;
+  margin-bottom: 8px;
+}
+
+.traffic-alert-title {
+  font-weight: bold;
+  font-size: 1.2rem;
+  line-height: 1.2;
+}
+
+.traffic-alert-message {
+  margin-top: 6px;
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.traffic-alert-counter {
+  margin-top: 10px;
+  text-align: right;
+  font-weight: bold;
+  opacity: 0.85;
+  color: rgba(255,255,255,0.9);
+  font-size: 0.9em;
+}
+
+.critical {
+  background: #b71c1c;
+  color: white;
+}
+
+.warning {
+  background: #ef6c00;
+  color: white;
+}
+
+.advisory {
+  background: #f9a825;
+  color: black;
+}
+
+.info {
+  background: #1565c0;
+  color: white;
+}
+
+.advisory .traffic-alert-counter {
+  color: rgba(0,0,0,0.85);
+}
+
 /* Tablet */
 @media (max-width: 1100px) {
   .form-grid {
