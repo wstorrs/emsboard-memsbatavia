@@ -291,6 +291,23 @@ body.tv-mode .traffic-alert-message{
   font-size:clamp(1rem, 0.9rem + 0.45vw, 1.25rem);
 }
 
+.traffic-alert-counter{
+  margin-top:10px;
+  text-align:right;
+  font-weight:bold;
+  opacity:.85;
+  color:rgba(255,255,255,.9);
+  font-size:.9em;
+}
+
+body.tv-mode .traffic-alert-counter{
+  font-size:1rem;
+}
+
+.advisory .traffic-alert-counter{
+  color:rgba(0,0,0,.85);
+}
+
 .traffic-alerts-scroll{
   max-height:220px;
   overflow-y:auto;
@@ -661,6 +678,9 @@ const MAX_TRAFFIC_ALERTS_DISPLAYED = 5;
 let cachedTrafficAlerts = [];
 let lastTrafficAlertsFetch = 0;
 let lastTrafficAlertsSignature = "";
+let currentTrafficAlerts = [];
+let currentTrafficAlertIndex = 0;
+let trafficTickerTimerStarted = false;
 
 function updateClock(){
   const now = new Date();
@@ -869,6 +889,44 @@ async function loadTrafficAlerts(){
   }
 }
 
+function renderTrafficTicker() {
+  const container =
+    document.getElementById("traffic-alerts-container");
+
+  if (!container) return;
+
+  if (currentTrafficAlerts.length === 0) {
+    container.innerHTML =
+      "<div style='color:white'>No active traffic alerts</div>";
+    return;
+  }
+
+  const alert =
+    currentTrafficAlerts[currentTrafficAlertIndex];
+
+  container.innerHTML = `
+    <div class="traffic-alert-card ${alert.severity || "advisory"}">
+
+      <div class="traffic-alert-title">
+        ${alert.title || "Traffic Alert"}
+      </div>
+
+      <div class="traffic-alert-message">
+        ${alert.source ? `<strong>${alert.source}</strong><br>` : ""}
+        ${alert.roadway ? `<strong>${alert.roadway}</strong><br>` : ""}
+        ${alert.county ? `${alert.county} County<br>` : ""}
+        ${alert.message || ""}
+      </div>
+
+      <div class="traffic-alert-counter">
+        Alert ${currentTrafficAlertIndex + 1}
+        of ${currentTrafficAlerts.length}
+      </div>
+
+    </div>
+  `;
+}
+
 async function loadBoard(){
   const r = await fetch("/api/board?ts=" + Date.now());
   const data = await r.json();
@@ -918,7 +976,6 @@ async function loadBoard(){
   }
 
   const trafficAlerts = await loadTrafficAlerts();
-  const trafficContainer = document.getElementById("traffic-alerts-container");
 
   const trafficAlertsSignature = JSON.stringify(
     trafficAlerts.map(alert => ({
@@ -933,28 +990,15 @@ async function loadBoard(){
     }))
   );
 
-  if(trafficContainer && trafficAlertsSignature !== lastTrafficAlertsSignature){
-    const previousScrollTop = trafficContainer.scrollTop;
+  if(trafficAlertsSignature !== lastTrafficAlertsSignature){
     lastTrafficAlertsSignature = trafficAlertsSignature;
 
-    if(trafficAlerts.length === 0){
-      trafficContainer.innerHTML =
-        "<div style='color:white'>No active traffic alerts</div>";
-    } else {
-      trafficContainer.innerHTML = trafficAlerts.map(alert => `
-        <div class="traffic-alert-card ${alert.severity || "advisory"}">
-          <div class="traffic-alert-title">${alert.title || "Traffic Alert"}</div>
-          <div class="traffic-alert-message">
-            ${alert.source ? `<b>${alert.source}</b><br>` : ""}
-            ${alert.roadway ? `<b>${alert.roadway}</b><br>` : ""}
-            ${alert.county ? `<b>${alert.county} County</b><br>` : ""}
-            ${alert.message || ""}
-          </div>
-        </div>
-      `).join("");
-    }
+    currentTrafficAlerts =
+      trafficAlerts.slice(0, MAX_TRAFFIC_ALERTS_DISPLAYED);
 
-    trafficContainer.scrollTop = previousScrollTop;
+    currentTrafficAlertIndex = 0;
+
+    renderTrafficTicker();
   }
 
   const dailyInfo = document.getElementById("daily-info");
@@ -1090,6 +1134,25 @@ fullscreenBtn.addEventListener("click", async () => {
 document.addEventListener("fullscreenchange", () => {
   fullscreenBtn.textContent = document.fullscreenElement ? "Exit Fullscreen" : "Fullscreen";
 });
+
+if (!trafficTickerTimerStarted) {
+  trafficTickerTimerStarted = true;
+
+  setInterval(() => {
+    if (currentTrafficAlerts.length <= 1) return;
+
+    currentTrafficAlertIndex++;
+
+    if (
+      currentTrafficAlertIndex >=
+      currentTrafficAlerts.length
+    ) {
+      currentTrafficAlertIndex = 0;
+    }
+
+    renderTrafficTicker();
+  }, 8000);
+}
 
 if(localStorage.getItem("mems-tv-mode") === "on"){
   setTvMode(true);
