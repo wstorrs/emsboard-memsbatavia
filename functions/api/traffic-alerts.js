@@ -9,7 +9,7 @@ export async function onRequestGet(context) {
   }
 
   const url = new URL(request.url);
-  const region = (url.searchParams.get("region") || "fingerlakes").toLowerCase();
+  const region = (url.searchParams.get("region") || "batavia").toLowerCase();
 
   const regionCountyMap = {
     batavia: [
