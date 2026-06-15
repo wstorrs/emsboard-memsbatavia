@@ -13,7 +13,7 @@ export async function onRequestGet(context) {
 
   const regionCountyMap = {
     batavia: ["Genesee", "Wyoming", "Orleans", "Erie"],
-    fingerlakes: ["Ontario", "Wayne", "Seneca", "Yates", "Livingston", "Monroe"]
+    fingerlakes: ["Ontario", "Wayne", "Seneca", "Yates", "Livingston"]
   };
 
   const allowedCounties = regionCountyMap[region] || regionCountyMap.batavia;
@@ -53,10 +53,6 @@ export async function onRequestGet(context) {
       "accident",
       "crash",
       "collision",
-      "closure",
-      "closed",
-      "road closed",
-      "lane closed",
       "all lanes closed",
       "blocked",
       "overturned",
