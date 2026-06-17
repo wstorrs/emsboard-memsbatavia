@@ -263,81 +263,88 @@ body.tv-mode .hospital-card{
   background:#ef6c00;
 }
 
-/* Traffic / Regional Alerts */
-.traffic-alert-card{
-  padding:8px;
-  border-radius:8px;
+/* Regional Alerts ticker */
+.regional-alerts-panel{
+  overflow:hidden;
+}
+
+.regional-alerts-ticker{
+  min-height:86px;
+  overflow:hidden;
+  position:relative;
+}
+
+.regional-alerts-track{
+  display:inline-flex;
+  align-items:stretch;
+  gap:18px;
+  white-space:nowrap;
+  animation:regionalAlertScroll 180s linear infinite;
+  will-change:transform;
+}
+
+.regional-alerts-ticker:hover .regional-alerts-track{
+  animation-play-state:paused;
+}
+
+.regional-alert-card{
+  display:inline-block;
+  min-width:min(900px, 85vw);
+  max-width:min(1200px, 92vw);
+  padding:12px 16px;
+  border-radius:10px;
   color:white;
-  margin-bottom:8px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.18);
+  box-sizing:border-box;
+  vertical-align:top;
 }
 
-body.tv-mode .traffic-alert-card{
-  padding:12px;
-  border-radius:12px;
+body.tv-mode .regional-alert-card{
+  padding:16px 20px;
+  border-radius:14px;
 }
 
-.traffic-alert-title{
-  font-size:var(--fs-hospital);
-  font-weight:bold;
+.regional-alert-title{
+  font-size:clamp(0.95rem, 0.8rem + 0.55vw, 1.35rem);
+  font-weight:900;
   line-height:1.2;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 }
 
-.traffic-alert-message{
-  margin-top:4px;
-  font-size:clamp(0.85rem, 0.75rem + 0.35vw, 1rem);
+.regional-alert-message{
+  margin-top:6px;
+  font-size:clamp(0.85rem, 0.75rem + 0.35vw, 1.05rem);
+  line-height:1.35;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
 }
 
-body.tv-mode .traffic-alert-message{
+body.tv-mode .regional-alert-message{
   font-size:clamp(1rem, 0.9rem + 0.45vw, 1.25rem);
 }
 
-.traffic-alert-counter{
-  margin-top:10px;
+.regional-alert-counter{
+  margin-top:8px;
   text-align:right;
   font-weight:bold;
   opacity:.85;
   color:rgba(255,255,255,.9);
-  font-size:.9em;
+  font-size:.85em;
 }
 
-body.tv-mode .traffic-alert-counter{
-  font-size:1rem;
+@keyframes regionalAlertScroll{
+  0%{ transform:translateX(100%); }
+  100%{ transform:translateX(-100%); }
 }
 
-.advisory .traffic-alert-counter{
-  color:rgba(0,0,0,.85);
-}
-
-.traffic-alerts-scroll{
-  max-height:220px;
-  overflow-y:auto;
-  overflow-x:hidden;
-  padding-right:6px;
-  border-top:1px solid rgba(255,255,255,.15);
-}
-
-body.tv-mode .traffic-alerts-scroll{
-  max-height:280px;
-}
-
-.critical{
-  background:#b71c1c;
-  color:white;
-  animation:pulse 2s infinite;
-}
-
-.warning{
-  background:#ef6c00;
-  color:white;
-}
-
-.advisory{
-  background:#f9a825;
-  color:black;
-}
-
+.critical,
+.warning,
+.advisory,
 .info{
-  background:#1565c0;
   color:white;
 }
 
@@ -356,15 +363,20 @@ body.tv-mode .hospital-comment{
   font-size:clamp(1rem, 0.9rem + 0.45vw, 1.25rem);
 }
 
-/* Daily Information panel */
+/* Daily Information ticker panel */
 .info-panel{
   min-height:120px;
 }
 
-.daily-info-content{
+.daily-info-ticker{
+  min-height:120px;
+}
+
+.daily-info-card{
   color:white;
   background:rgba(255,255,255,.06);
-  border-radius:8px;
+  border-left:6px solid var(--pantone165);
+  border-radius:10px;
   padding:12px;
   font-size:var(--fs-body);
   line-height:1.35;
@@ -372,47 +384,39 @@ body.tv-mode .hospital-comment{
   overflow-wrap:anywhere;
 }
 
-body.tv-mode .daily-info-content{
+body.tv-mode .daily-info-card{
   padding:16px;
+  border-radius:14px;
   font-size:clamp(1.1rem, 0.95rem + 0.55vw, 1.5rem);
 }
 
-.daily-info-content p{
-  margin:0 0 8px 0;
-}
-
-.daily-info-content p:last-child{
-  margin-bottom:0;
-}
-
-.daily-info-content ul,
-.daily-info-content ol{
-  margin-top:6px;
-  margin-bottom:6px;
-  padding-left:28px;
-}
-
-.daily-info-content li{
-  margin-bottom:4px;
-}
-
-.daily-info-content strong,
-.daily-info-content b{
+.daily-info-card-title{
   font-weight:800;
+  font-size:1.08em;
+  margin-bottom:8px;
 }
 
-.daily-info-content em,
-.daily-info-content i{
+.daily-info-date{
   font-style:italic;
+  opacity:.9;
+  margin-bottom:8px;
 }
 
-.daily-info-content u{
-  text-decoration:underline;
+.daily-info-message-text{
+  margin-top:4px;
 }
 
-.daily-info-content a{
-  color:var(--pantone165);
+.daily-info-counter{
+  margin-top:10px;
+  text-align:right;
   font-weight:bold;
+  opacity:.85;
+  color:rgba(255,255,255,.9);
+  font-size:.9em;
+}
+
+.daily-info-empty{
+  color:white;
 }
 
 .oos-card{
@@ -527,8 +531,8 @@ body.tv-mode .tv-btn{
 }
 
 @media (max-width:700px){
-  .traffic-alerts-scroll{
-    max-height:200px;
+  .regional-alerts-ticker{
+    min-height:100px;
   }
 
   .board{
@@ -626,6 +630,13 @@ body.tv-mode .tv-btn{
 
   </section>
 
+  <section class="panel regional-alerts-panel">
+    <div class="title">Regional Alerts</div>
+    <div id="regional-alerts-container" class="regional-alerts-ticker">
+      <div style="color:white">Loading regional alerts...</div>
+    </div>
+  </section>
+
   <section class="panel">
     <div class="title">Vehicle Assignments</div>
 
@@ -655,16 +666,11 @@ body.tv-mode .tv-btn{
     </div>
   </section>
 
-  <section class="panel">
-    <div class="title">Traffic / Regional Alerts</div>
-    <div id="traffic-alerts-container" class="traffic-alerts-scroll">
-      <div style="color:white">Loading traffic alerts...</div>
-    </div>
-  </section>
+
 
   <section class="panel info-panel">
     <div class="title">Daily Information</div>
-    <div id="daily-info" class="daily-info-content">
+    <div id="daily-info" class="daily-info-ticker">
       No announcements at this time.
     </div>
   </section>
@@ -673,14 +679,17 @@ body.tv-mode .tv-btn{
 
 <script>
 const TRAFFIC_ALERT_REFRESH_MS = 60000;
-const MAX_TRAFFIC_ALERTS_DISPLAYED = 5;
+const MAX_REGIONAL_ALERTS_DISPLAYED = 10;
+const DAILY_INFO_ROTATION_MS = 9000;
 
 let cachedTrafficAlerts = [];
 let lastTrafficAlertsFetch = 0;
-let lastTrafficAlertsSignature = "";
-let currentTrafficAlerts = [];
-let currentTrafficAlertIndex = 0;
-let trafficTickerTimerStarted = false;
+let lastRegionalAlertsSignature = "";
+let currentRegionalAlerts = [];
+let lastDailyInfoSignature = "";
+let currentDailyInfoItems = [];
+let currentDailyInfoIndex = 0;
+let dailyInfoTickerTimerStarted = false;
 
 function updateClock(){
   const now = new Date();
@@ -726,6 +735,15 @@ function setMedDirectionField(id, value){
   } else {
     el.textContent = "716-626-4011";
   }
+}
+
+function escapeHtml(value){
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 /*
@@ -877,7 +895,7 @@ async function loadTrafficAlerts(){
     const data = await r.json();
 
     cachedTrafficAlerts = Array.isArray(data.alerts)
-      ? data.alerts.slice(0, MAX_TRAFFIC_ALERTS_DISPLAYED)
+      ? data.alerts.slice(0, MAX_REGIONAL_ALERTS_DISPLAYED)
       : [];
 
     lastTrafficAlertsFetch = now;
@@ -889,40 +907,226 @@ async function loadTrafficAlerts(){
   }
 }
 
-function renderTrafficTicker() {
-  const container =
-    document.getElementById("traffic-alerts-container");
+function renderRegionalAlertTicker(){
+  const container = document.getElementById("regional-alerts-container");
 
-  if (!container) return;
+  if(!container) return;
 
-  if (currentTrafficAlerts.length === 0) {
-    container.innerHTML =
-      "<div style='color:white'>No active traffic alerts</div>";
+  if(currentRegionalAlerts.length === 0){
+    container.innerHTML = "<div style='color:white'>No active regional alerts</div>";
     return;
   }
 
-  const alert =
-    currentTrafficAlerts[currentTrafficAlertIndex];
+  const cardsHtml = currentRegionalAlerts.map((alert, index) => {
+    const title = alert.title || "Regional Alert";
+    const source = alert.source || "511NY";
+    const roadway = alert.roadway || alert.location || "";
+    const county = alert.county ? alert.county + " County" : "";
+
+    const headerParts = [title, source, roadway, county]
+      .map(part => String(part || "").trim())
+      .filter(part => part !== "");
+
+    return `
+      <div class="regional-alert-card">
+        <div class="regional-alert-title">
+          ${headerParts.map(escapeHtml).join(" | ")}
+        </div>
+
+        <div class="regional-alert-message">
+          ${escapeHtml(alert.message || "")}
+        </div>
+
+        <div class="regional-alert-counter">
+          Alert ${index + 1} of ${currentRegionalAlerts.length}
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  const repeatedCardsHtml = currentRegionalAlerts.length === 1
+    ? cardsHtml + cardsHtml
+    : cardsHtml;
 
   container.innerHTML = `
-    <div class="traffic-alert-card ${alert.severity || "advisory"}">
+    <div class="regional-alerts-track">
+      ${repeatedCardsHtml}
+    </div>
+  `;
+}
 
-      <div class="traffic-alert-title">
-        ${alert.title || "Traffic Alert"}
+function splitDailyInfoText(text){
+  const normalized = String(text || "")
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n");
+
+  const items = [];
+  let current = "";
+  let blankCount = 0;
+
+  normalized.split("\n").forEach(line => {
+    const trimmedLine = line.trim();
+    const isDivider = /^-{3,}$/.test(trimmedLine);
+
+    if(trimmedLine === ""){
+      blankCount++;
+      if(blankCount >= 2 && current.trim() !== ""){
+        items.push(current.trim());
+        current = "";
+      }
+      return;
+    }
+
+    if(isDivider){
+      if(current.trim() !== ""){
+        items.push(current.trim());
+        current = "";
+      }
+      blankCount = 0;
+      return;
+    }
+
+    if(current !== "") current += "\n";
+    current += line;
+    blankCount = 0;
+  });
+
+  if(current.trim() !== ""){
+    items.push(current.trim());
+  }
+
+  return items.map(item => item.trim()).filter(item => item !== "");
+}
+
+function stripHtmlToText(value){
+  const temp = document.createElement("div");
+  temp.innerHTML = String(value || "")
+    .replace(/<br\s*\/?\s*>/gi, "\n")
+    .replace(/<\/p\s*>/gi, "\n");
+  return (temp.textContent || temp.innerText || "").trim();
+}
+
+function removeDuplicateTitleFromMessage(title, message){
+  const cleanTitle = String(title || "").trim();
+  let cleanMessage = String(message || "").trim();
+
+  if(cleanTitle === "" || cleanMessage === ""){
+    return cleanMessage;
+  }
+
+  const lines = cleanMessage
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n")
+    .split("\n");
+
+  while(lines.length > 0 && lines[0].trim() === ""){
+    lines.shift();
+  }
+
+  if(lines.length > 0 && lines[0].trim().toLowerCase() === cleanTitle.toLowerCase()){
+    lines.shift();
+  }
+
+  return lines.join("\n").trim();
+}
+
+function makeDailyInfoItem(title, message, date){
+  const cleanTitle = String(title || "").trim();
+  const cleanDate = String(date || "").trim();
+  const cleanMessage = removeDuplicateTitleFromMessage(cleanTitle, String(message || "").trim());
+
+  if(cleanTitle === "" && cleanMessage === "" && cleanDate === ""){
+    return null;
+  }
+
+  return {
+    title: cleanTitle || "Daily Information",
+    message: cleanMessage,
+    date: cleanDate
+  };
+}
+
+function normalizeDailyInfoItems(rawDailyInfo){
+  if(Array.isArray(rawDailyInfo)){
+    return rawDailyInfo
+      .map(item => {
+        if(typeof item === "string"){
+          const text = stripHtmlToText(item);
+          const lines = text.split("\n").map(line => line.trim()).filter(Boolean);
+          const title = lines.length > 1 ? lines.shift() : "Daily Information";
+          return makeDailyInfoItem(title, lines.join("\n"));
+        }
+
+        if(item && typeof item === "object"){
+          return makeDailyInfoItem(
+            item.title || item.heading || item.name || "",
+            item.message || item.announcement || item.body || item.text || item.description || item.details || "",
+            item.date || item.updated || item.time || ""
+          );
+        }
+
+        return null;
+      })
+      .filter(Boolean);
+  }
+
+  const html = String(rawDailyInfo || "").trim();
+
+  if(html === ""){
+    return [];
+  }
+
+  const parts = html
+    .split(/<hr\s*\/?\s*>/i)
+    .map(part => part.trim())
+    .filter(part => part !== "");
+
+  const sourceParts = parts.length > 1 ? parts : splitDailyInfoText(stripHtmlToText(html));
+
+  return sourceParts
+    .map((part, index) => {
+      const text = stripHtmlToText(part);
+      const lines = text.split("\n").map(line => line.trim()).filter(Boolean);
+      let title = "Announcement " + (index + 1);
+      let message = text;
+
+      if(lines.length > 1){
+        title = lines.shift();
+        message = lines.join("\n");
+      }
+
+      return makeDailyInfoItem(title, message);
+    })
+    .filter(Boolean);
+}
+
+function renderDailyInfoTicker(){
+  const container = document.getElementById("daily-info");
+
+  if(!container) return;
+
+  if(currentDailyInfoItems.length === 0){
+    container.innerHTML = "<div class='daily-info-empty'>No announcements at this time.</div>";
+    return;
+  }
+
+  const item = currentDailyInfoItems[currentDailyInfoIndex] || {};
+  const title = escapeHtml(item.title || "Daily Information");
+  const date = item.date ? `<div class="daily-info-date">${escapeHtml(item.date)}</div>` : "";
+  const message = item.message
+    ? `<div class="daily-info-message-text">${escapeHtml(item.message).replace(/\n/g, "<br>")}</div>`
+    : "";
+
+  container.innerHTML = `
+    <div class="daily-info-card">
+      <div class="daily-info-card-title">${title}</div>
+      ${date}
+      ${message}
+
+      <div class="daily-info-counter">
+        Announcement ${currentDailyInfoIndex + 1}
+        of ${currentDailyInfoItems.length}
       </div>
-
-      <div class="traffic-alert-message">
-        ${alert.source ? `<strong>${alert.source}</strong><br>` : ""}
-        ${alert.roadway ? `<strong>${alert.roadway}</strong><br>` : ""}
-        ${alert.county ? `${alert.county} County<br>` : ""}
-        ${alert.message || ""}
-      </div>
-
-      <div class="traffic-alert-counter">
-        Alert ${currentTrafficAlertIndex + 1}
-        of ${currentTrafficAlerts.length}
-      </div>
-
     </div>
   `;
 }
@@ -975,41 +1179,47 @@ async function loadBoard(){
     });
   }
 
+  const manualRegionalAlerts = Array.isArray(data.regionalAlerts) ? data.regionalAlerts : [];
   const trafficAlerts = await loadTrafficAlerts();
 
-  const trafficAlertsSignature = JSON.stringify(
-    trafficAlerts.map(alert => ({
+  const combinedRegionalAlerts = [
+    ...manualRegionalAlerts.map(alert => ({
+      ...alert,
+      source: alert.source || "Manual"
+    })),
+    ...trafficAlerts
+  ].slice(0, MAX_REGIONAL_ALERTS_DISPLAYED);
+
+  const regionalAlertsSignature = JSON.stringify(
+    combinedRegionalAlerts.map(alert => ({
       id: alert.id || "",
       source: alert.source || "",
       severity: alert.severity || "",
       title: alert.title || "",
       roadway: alert.roadway || "",
+      location: alert.location || "",
       county: alert.county || "",
       message: alert.message || "",
       updated: alert.updated || ""
     }))
   );
 
-  if(trafficAlertsSignature !== lastTrafficAlertsSignature){
-    lastTrafficAlertsSignature = trafficAlertsSignature;
-
-    currentTrafficAlerts =
-      trafficAlerts.slice(0, MAX_TRAFFIC_ALERTS_DISPLAYED);
-
-    currentTrafficAlertIndex = 0;
-
-    renderTrafficTicker();
+  if(regionalAlertsSignature !== lastRegionalAlertsSignature){
+    lastRegionalAlertsSignature = regionalAlertsSignature;
+    currentRegionalAlerts = combinedRegionalAlerts;
+    renderRegionalAlertTicker();
   }
 
-  const dailyInfo = document.getElementById("daily-info");
+  const dailyInfoItems = normalizeDailyInfoItems(Array.isArray(data.dailyInfoItems) ? data.dailyInfoItems : data.dailyInfo);
+  const dailyInfoSignature = JSON.stringify(dailyInfoItems);
 
-  if(dailyInfo){
-    const infoHtml = (data.dailyInfo || "").trim();
-
-    dailyInfo.innerHTML = infoHtml !== ""
-      ? sanitizeRichText(infoHtml)
-      : "No announcements at this time.";
+  if(dailyInfoSignature !== lastDailyInfoSignature){
+    lastDailyInfoSignature = dailyInfoSignature;
+    currentDailyInfoItems = dailyInfoItems;
+    currentDailyInfoIndex = 0;
+    renderDailyInfoTicker();
   }
+
 
 
   document.getElementById("json-refresh").textContent =
@@ -1135,24 +1345,22 @@ document.addEventListener("fullscreenchange", () => {
   fullscreenBtn.textContent = document.fullscreenElement ? "Exit Fullscreen" : "Fullscreen";
 });
 
-if (!trafficTickerTimerStarted) {
-  trafficTickerTimerStarted = true;
+if(!dailyInfoTickerTimerStarted){
+  dailyInfoTickerTimerStarted = true;
 
   setInterval(() => {
-    if (currentTrafficAlerts.length <= 1) return;
+    if(currentDailyInfoItems.length <= 1) return;
 
-    currentTrafficAlertIndex++;
+    currentDailyInfoIndex++;
 
-    if (
-      currentTrafficAlertIndex >=
-      currentTrafficAlerts.length
-    ) {
-      currentTrafficAlertIndex = 0;
+    if(currentDailyInfoIndex >= currentDailyInfoItems.length){
+      currentDailyInfoIndex = 0;
     }
 
-    renderTrafficTicker();
-  }, 8000);
+    renderDailyInfoTicker();
+  }, DAILY_INFO_ROTATION_MS);
 }
+
 
 if(localStorage.getItem("mems-tv-mode") === "on"){
   setTvMode(true);
