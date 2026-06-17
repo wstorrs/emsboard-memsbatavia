@@ -305,10 +305,23 @@
 
     function getDailyInfoItems() {
       const rows = Array.from(document.querySelectorAll("#dailyInfoTable tbody tr"));
-      return rows.map(row => ({
-        title: row.querySelector(".daily-info-title").value.trim(),
-        message: row.querySelector(".daily-info-message").value.trim()
-      })).filter(item => item.title !== "" || item.message !== "");
+
+      return rows.map(row => {
+        const title = row.querySelector(".daily-info-title").value.trim();
+        let message = row.querySelector(".daily-info-message").value.trim();
+
+        if (
+          title &&
+          message.toLowerCase().startsWith(title.toLowerCase())
+        ) {
+          message = message.substring(title.length).trim();
+        }
+
+        return {
+          title,
+          message
+        };
+      }).filter(item => item.title !== "" || item.message !== "");
     }
 
     function getDailyInfoHtml() {
